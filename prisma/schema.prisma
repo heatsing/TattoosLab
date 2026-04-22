@@ -1,0 +1,545 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// User & Authentication (Clerk-managed)
+// ============================================
+model User {
+  id            String    @id @unique
+  email         String    @unique
+  name          String?
+  imageUrl      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  role          UserRole  @default(USER)
+
+  // Relations
+  subscription  Subscription?
+  creditLedger  CreditLedger[]
+  generations   TattooGeneration[]
+  uploads       UserUpload[]
+  tryOnProjects TryOnProject[]
+  favorites     Favorite[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+// ============================================
+// Subscription & Billing (Stripe)
+// ============================================
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String             @unique
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Stripe fields
+  stripeCustomerId     String             @unique
+  stripeSubscriptionId String?            @unique
+  stripePriceId        String
+  stripeProductId      String
+  
+  // Subscription status
+  status               SubscriptionStatus
+  tier                 SubscriptionTier
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean            @default(false)
+  
+  // Metadata
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  // Relations
+  payments             Payment[]
+
+  @@map("subscriptions")
+}
+
+enum SubscriptionStatus {
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
+  PAUSED
+}
+
+enum SubscriptionTier {
+  FREE
+  PRO
+  STUDIO
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  subscriptionId    String
+  subscription      Subscription  @relation(fields: [subscriptionId], references: [id])
+  
+  stripePaymentId   String        @unique
+  amount            Int           // in cents
+  currency          String        @default("usd")
+  status            PaymentStatus
+  
+  createdAt         DateTime      @default(now())
+
+  @@map("payments")
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+// ============================================
+// Credit System
+// ============================================
+model CreditLedger {
+  id            String              @id @default(cuid())
+  userId        String
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  amount        Int                 // positive = credit, negative = debit
+  balance       Int                 // running balance after transaction
+  type          CreditTransactionType
+  description   String?
+  
+  // Optional relations
+  generationId  String?
+  
+  createdAt     DateTime            @default(now())
+
+  @@index([userId, createdAt])
+  @@map("credit_ledger")
+}
+
+enum CreditTransactionType {
+  PURCHASE
+  SUBSCRIPTION_GRANT
+  GENERATION_USE
+  BONUS
+  REFUND
+  ADMIN_ADJUSTMENT
+}
+
+// ============================================
+// Tattoo Generation (AI)
+// ============================================
+model TattooGeneration {
+  id                String           @id @default(cuid())
+  userId            String
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Generation parameters
+  prompt            String
+  negativePrompt    String?
+  styleId           String
+  style             TattooStyle      @relation(fields: [styleId], references: [id])
+  placement         BodyPlacement?
+  aspectRatio       AspectRatio      @default(SQUARE)
+  
+  // Reference image (optional)
+  referenceImageUrl String?
+  
+  // Results
+  resultImages      GenerationImage[]
+  
+  // Status tracking
+  status            GenerationStatus @default(PENDING)
+  creditsUsed       Int              @default(1)
+  
+  // Visibility
+  isPublic          Boolean          @default(false)
+  isFeatured        Boolean          @default(false)
+  
+  // Timestamps
+  createdAt         DateTime         @default(now())
+  completedAt       DateTime?
+
+  // Relations
+  favorites         Favorite[]
+
+  @@index([userId, createdAt])
+  @@index([status])
+  @@map("tattoo_generations")
+}
+
+model GenerationImage {
+  id            String           @id @default(cuid())
+  generationId  String
+  generation    TattooGeneration @relation(fields: [generationId], references: [id], onDelete: Cascade)
+  
+  url           String
+  width         Int
+  height        Int
+  size          Int              // in bytes
+  isUpscaled    Boolean          @default(false)
+  
+  createdAt     DateTime         @default(now())
+
+  @@map("generation_images")
+}
+
+model TattooStyle {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  slug          String   @unique
+  description   String?
+  imageUrl      String?
+  promptPrefix  String?  // For AI enhancement
+  
+  // Configuration
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+
+  // Relations
+  generations   TattooGeneration[]
+
+  @@map("tattoo_styles")
+}
+
+enum BodyPlacement {
+  ARM
+  FOREARM
+  WRIST
+  HAND
+  CHEST
+  BACK
+  SHOULDER
+  LEG
+  THIGH
+  CALF
+  ANKLE
+  FOOT
+  NECK
+  RIBCAGE
+  OTHER
+}
+
+enum AspectRatio {
+  SQUARE      // 1:1
+  PORTRAIT    // 3:4
+  LANDSCAPE   // 4:3
+  WIDE        // 16:9
+}
+
+enum GenerationStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// ============================================
+// User Uploads (Cloudinary)
+// ============================================
+model UserUpload {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  url         String
+  publicId    String   // Cloudinary public ID
+  type        UploadType
+  filename    String
+  size        Int
+  
+  createdAt   DateTime @default(now())
+
+  // Relations
+  tryOnProjects TryOnProject[]
+
+  @@index([userId])
+  @@map("user_uploads")
+}
+
+enum UploadType {
+  REFERENCE
+  BODY_PHOTO
+}
+
+// ============================================
+// Try-On Projects
+// ============================================
+model TryOnProject {
+  id              String     @id @default(cuid())
+  userId          String
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name            String?
+  description     String?
+  
+  // Body photo
+  bodyPhotoId     String
+  bodyPhoto       UserUpload @relation(fields: [bodyPhotoId], references: [id])
+  bodyPhotoUrl    String     // Cached URL for quick access
+  
+  // Tattoo overlay
+  tattooImageUrl  String
+  tattooSource    TattooSource @default(GENERATED)
+  
+  // Transform controls (normalized values)
+  positionX       Float      @default(0.5)  // 0-1 relative to canvas
+  positionY       Float      @default(0.5)  // 0-1 relative to canvas
+  scale           Float      @default(1.0)  // 0.1-5.0
+  rotation        Float      @default(0)    // degrees -180 to 180
+  opacity         Float      @default(0.85) // 0-1
+  blendMode       BlendMode  @default(MULTIPLY)
+  
+  // Flip controls
+  flipX           Boolean    @default(false)
+  flipY           Boolean    @default(false)
+  
+  // Result
+  resultUrl       String?
+  resultPublicId  String?    // Cloudinary public ID
+  
+  // Status
+  status          TryOnStatus @default(DRAFT)
+  
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([userId, status])
+  @@map("try_on_projects")
+}
+
+enum TattooSource {
+  GENERATED    // From AI generation
+  UPLOADED     // User uploaded
+  GALLERY      // From community gallery
+  PRESET       // Built-in presets
+}
+
+enum BlendMode {
+  NORMAL
+  MULTIPLY
+  SCREEN
+  OVERLAY
+  SOFT_LIGHT
+  HARD_LIGHT
+  DARKEN
+  LIGHTEN
+}
+
+enum TryOnStatus {
+  DRAFT
+  SAVED
+  EXPORTED
+  SHARED
+}
+
+// ============================================
+// Favorites
+// ============================================
+model Favorite {
+  id            String           @id @default(cuid())
+  userId        String
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  generationId  String
+  generation    TattooGeneration @relation(fields: [generationId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime         @default(now())
+
+  @@unique([userId, generationId])
+  @@index([userId])
+  @@map("favorites")
+}
+
+// ============================================
+// Gallery System
+// ============================================
+model Tattoo {
+  id            String   @id @default(cuid())
+  title         String
+  slug          String   @unique
+  description   String?
+  
+  // Images
+  imageUrl      String
+  thumbnailUrl  String?
+  
+  // Multi-dimensional filters
+  style         TattooStyleName
+  placement     BodyPlacement?
+  category      TattooCategory
+  meanings      String[] // e.g., ["strength", "freedom", "love"]
+  audience      AudienceType @default(UNISEX)
+  
+  // Tags for flexible filtering
+  tags          String[]
+  
+  // SEO
+  seoTitle      String?
+  seoDescription String?
+  
+  // Engagement
+  viewCount     Int      @default(0)
+  likeCount     Int      @default(0)
+  
+  // Visibility
+  isPublic      Boolean  @default(true)
+  isFeatured    Boolean  @default(false)
+  
+  // Attribution
+  artistName    String?
+  artistUrl     String?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([style])
+  @@index([placement])
+  @@index([category])
+  @@index([audience])
+  @@index([isPublic, isFeatured])
+  @@index([tags])
+  @@map("tattoos")
+}
+
+enum TattooStyleName {
+  GEOMETRIC
+  WATERCOLOR
+  MINIMALIST
+  TRADITIONAL
+  JAPANESE
+  BLACKWORK
+  NEO_TRADITIONAL
+  DOTWORK
+  TRIBAL
+  REALISM
+  ABSTRACT
+  LETTERING
+  FINELINE
+  ILLUSTRATIVE
+}
+
+enum TattooCategory {
+  ANIMAL
+  FLORAL
+  SYMBOL
+  PORTRAIT
+  NATURE
+  MYTHOLOGY
+  RELIGIOUS
+  MEMORIAL
+  QUOTE
+  ABSTRACT
+  SKULL
+  BUTTERFLY
+  DRAGON
+  WOLF
+  LION
+  ROSE
+  CROSS
+  ANCHOR
+  COMPASS
+  MANDALA
+}
+
+enum AudienceType {
+  MEN
+  WOMEN
+  UNISEX
+}
+
+// ============================================
+// Content Management
+// ============================================
+model BlogPost {
+  id              String    @id @default(cuid())
+  slug            String    @unique
+  title           String
+  excerpt         String?
+  content         String    @db.Text
+  featuredImage   String?
+  
+  // SEO
+  seoTitle        String?
+  seoDescription  String?
+  
+  // Status
+  status          PostStatus @default(DRAFT)
+  publishedAt     DateTime?
+  
+  // Author (Clerk user ID)
+  authorId        String
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([status, publishedAt])
+  @@map("blog_posts")
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Testimonial {
+  id          String   @id @default(cuid())
+  name        String
+  role        String?
+  avatar      String?
+  content     String
+  rating      Int      @default(5)
+  
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  
+  createdAt   DateTime @default(now())
+
+  @@map("testimonials")
+}
+
+// ============================================
+// Feature Flags
+// ============================================
+model FeatureFlag {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  enabled     Boolean  @default(false)
+  description String?
+  
+  updatedAt   DateTime @updatedAt
+
+  @@map("feature_flags")
+}
+
+// ============================================
+// Audit Log
+// ============================================
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String
+  action      String
+  entity      String
+  entityId    String?
+  oldValue    String?  @db.Text
+  newValue    String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([entity, entityId])
+  @@map("audit_logs")
+}
