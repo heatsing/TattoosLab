@@ -1,16 +1,12 @@
 import { Tattoo, FilterConfig, FilterType, GalleryFilter } from "./types";
 
-// Helper to generate Unsplash URLs with seeds
-function unsplashUrl(seed: string, w = 600, h = 800): string {
-  return `https://images.unsplash.com/photo-${seed}?w=${w}&h=${h}&fit=crop&q=80`;
-}
-
 export const tattoos: Tattoo[] = [
   // Geometric
   {
     id: "1", title: "Sacred Geometry Mandala", slug: "sacred-geometry-mandala",
     description: "Intricate sacred geometry mandala representing unity and cosmic order.",
-    imageUrl: unsplashUrl("1598371839696-5c5cda994e28"), thumbnailUrl: unsplashUrl("1598371839696-5c5cda994e28", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1614179688766-3d197a6996c4?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1614179688766-3d197a6996c4?w=300&h=400&fit=crop&q=80",
     style: "geometric", placement: "forearm", category: "mandala",
     meanings: ["unity", "balance", "spirituality"], audience: "unisex",
     tags: ["geometric", "mandala", "sacred", "forearm", "spiritual"],
@@ -20,7 +16,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "2", title: "Hexagonal Crystal Formation", slug: "hexagonal-crystal",
     description: "Crystalline hexagonal pattern with aurora color accents.",
-    imageUrl: unsplashUrl("1562962230-16e4623d36e6"), thumbnailUrl: unsplashUrl("1562962230-16e4623d36e6", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=300&h=400&fit=crop&q=80",
     style: "geometric", placement: "ribcage", category: "abstract",
     meanings: ["strength", "clarity"], audience: "unisex",
     tags: ["geometric", "crystal", "abstract", "ribcage"],
@@ -31,7 +28,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "3", title: "Watercolor Koi Fish", slug: "watercolor-koi-fish",
     description: "Flowing watercolor koi fish swimming through cherry blossoms.",
-    imageUrl: unsplashUrl("1542727365-19732a80dcfd"), thumbnailUrl: unsplashUrl("1542727365-19732a80dcfd", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1551913902-c92207136625?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1551913902-c92207136625?w=300&h=400&fit=crop&q=80",
     style: "watercolor", placement: "thigh", category: "animal",
     meanings: ["perseverance", "luck", "transformation"], audience: "unisex",
     tags: ["watercolor", "koi", "fish", "japanese", "thigh", "animal"],
@@ -41,7 +39,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "4", title: "Abstract Watercolor Waves", slug: "watercolor-waves",
     description: "Soft flowing watercolor ocean waves with coral details.",
-    imageUrl: unsplashUrl("1565058379802-bbe93b2f703a"), thumbnailUrl: unsplashUrl("1565058379802-bbe93b2f703a", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=300&h=400&fit=crop&q=80",
     style: "watercolor", placement: "shoulder", category: "nature",
     meanings: ["freedom", "flow", "peace"], audience: "women",
     tags: ["watercolor", "ocean", "waves", "nature", "shoulder"],
@@ -52,7 +51,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "5", title: "Single Line Portrait", slug: "single-line-portrait",
     description: "Continuous single line drawing of a female silhouette.",
-    imageUrl: unsplashUrl("1590246815117-1fe56c231f43"), thumbnailUrl: unsplashUrl("1590246815117-1fe56c231f43", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?w=300&h=400&fit=crop&q=80",
     style: "minimalist", placement: "wrist", category: "portrait",
     meanings: ["elegance", "simplicity"], audience: "women",
     tags: ["minimalist", "line", "portrait", "wrist", "simple"],
@@ -62,7 +62,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "6", title: "Tiny Constellation Map", slug: "constellation-map",
     description: "Minimalist constellation with connected stars.",
-    imageUrl: unsplashUrl("1475403614135-5f1aa0eb5015"), thumbnailUrl: unsplashUrl("1475403614135-5f1aa0eb5015", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300&h=400&fit=crop&q=80",
     style: "minimalist", placement: "wrist", category: "nature",
     meanings: ["destiny", "guidance"], audience: "unisex",
     tags: ["minimalist", "stars", "constellation", "wrist", "space"],
@@ -73,7 +74,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "7", title: "Classic Anchor with Rose", slug: "anchor-rose",
     description: "Traditional nautical anchor wrapped in rope with rose banner.",
-    imageUrl: unsplashUrl("1565058379802-bbe93b2f703a"), thumbnailUrl: unsplashUrl("1565058379802-bbe93b2f703a", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1590246814801-867517deb529?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1590246814801-867517deb529?w=300&h=400&fit=crop&q=80",
     style: "traditional", placement: "chest", category: "anchor",
     meanings: ["stability", "hope", "love"], audience: "men",
     tags: ["traditional", "anchor", "rose", "nautical", "chest"],
@@ -83,7 +85,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "8", title: "Old School Eagle", slug: "old-school-eagle",
     description: "Bold traditional eagle with banner and roses.",
-    imageUrl: unsplashUrl("1611501275019-9b5cda994e8d"), thumbnailUrl: unsplashUrl("1611501275019-9b5cda994e8d", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1611501275019-9b5cda994e8d?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1611501275019-9b5cda994e8d?w=300&h=400&fit=crop&q=80",
     style: "traditional", placement: "upper-arm", category: "animal",
     meanings: ["freedom", "power", "patriotism"], audience: "men",
     tags: ["traditional", "eagle", "animal", "upper-arm", "bold"],
@@ -94,7 +97,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "9", title: "Japanese Dragon Sleeve", slug: "japanese-dragon",
     description: "Fierce Japanese dragon with clouds and waves.",
-    imageUrl: unsplashUrl("1542727365-19732a80dcfd"), thumbnailUrl: unsplashUrl("1542727365-19732a80dcfd", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1551913902-c92207136625?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1551913902-c92207136625?w=300&h=400&fit=crop&q=80",
     style: "japanese", placement: "full-sleeve", category: "dragon",
     meanings: ["power", "wisdom", "protection"], audience: "men",
     tags: ["japanese", "dragon", "sleeve", "mythology", "irezumi"],
@@ -104,7 +108,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "10", title: "Cherry Blossom Branch", slug: "cherry-blossom",
     description: "Delicate Japanese cherry blossoms on a branch.",
-    imageUrl: unsplashUrl("1562962230-16e4623d36e6"), thumbnailUrl: unsplashUrl("1562962230-16e4623d36e6", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=300&h=400&fit=crop&q=80",
     style: "japanese", placement: "shoulder", category: "floral",
     meanings: ["beauty", "transience", "renewal"], audience: "women",
     tags: ["japanese", "cherry", "blossom", "floral", "shoulder", "feminine"],
@@ -115,7 +120,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "11", title: "Dotwork Mountain Landscape", slug: "dotwork-mountains",
     description: "Stippled mountain scene with geometric sun.",
-    imageUrl: unsplashUrl("1475403614135-5f1aa0eb5015"), thumbnailUrl: unsplashUrl("1475403614135-5f1aa0eb5015", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=400&fit=crop&q=80",
     style: "blackwork", placement: "calf", category: "nature",
     meanings: ["adventure", "stability"], audience: "unisex",
     tags: ["blackwork", "dotwork", "mountain", "nature", "calf"],
@@ -125,7 +131,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "12", title: "Sacred Dot Mandala", slug: "dot-mandala",
     description: "Intricate dotwork mandala with sacred patterns.",
-    imageUrl: unsplashUrl("1598371839696-5c5cda994e28"), thumbnailUrl: unsplashUrl("1598371839696-5c5cda994e28", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1614179688766-3d197a6996c4?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1614179688766-3d197a6996c4?w=300&h=400&fit=crop&q=80",
     style: "blackwork", placement: "back", category: "mandala",
     meanings: ["spirituality", "balance"], audience: "unisex",
     tags: ["blackwork", "dotwork", "mandala", "spiritual", "back"],
@@ -136,7 +143,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "13", title: "Neo-Traditional Owl", slug: "neo-owl",
     description: "Owl with moon phases and celestial flowers.",
-    imageUrl: unsplashUrl("1611501275019-9b5cda994e8d"), thumbnailUrl: unsplashUrl("1611501275019-9b5cda994e8d", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1560185893-a55cbc8c57e8?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1560185893-a55cbc8c57e8?w=300&h=400&fit=crop&q=80",
     style: "neo-traditional", placement: "upper-arm", category: "animal",
     meanings: ["wisdom", "mystery", "intuition"], audience: "unisex",
     tags: ["neo-traditional", "owl", "animal", "moon", "upper-arm"],
@@ -146,7 +154,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "14", title: "Vibrant Neo Rose", slug: "neo-rose",
     description: "Bold neo-traditional rose with jewel tones.",
-    imageUrl: unsplashUrl("1565058379802-bbe93b2f703a"), thumbnailUrl: unsplashUrl("1565058379802-bbe93b2f703a", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=300&h=400&fit=crop&q=80",
     style: "neo-traditional", placement: "forearm", category: "rose",
     meanings: ["love", "passion", "beauty"], audience: "women",
     tags: ["neo-traditional", "rose", "floral", "colorful", "forearm"],
@@ -157,7 +166,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "15", title: "Realistic Lion Portrait", slug: "realistic-lion",
     description: "Hyper-realistic lion portrait with dramatic lighting.",
-    imageUrl: unsplashUrl("1590246815117-1fe56c231f43"), thumbnailUrl: unsplashUrl("1590246815117-1fe56c231f43", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=300&h=400&fit=crop&q=80",
     style: "realism", placement: "chest", category: "lion",
     meanings: ["courage", "leadership", "family"], audience: "men",
     tags: ["realism", "lion", "animal", "portrait", "chest", "detailed"],
@@ -167,7 +177,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "16", title: "Realistic Wolf Howling", slug: "realistic-wolf",
     description: "Photorealistic wolf howling at the moon.",
-    imageUrl: unsplashUrl("1562962230-16e4623d36e6"), thumbnailUrl: unsplashUrl("1562962230-16e4623d36e6", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1564466809058-bf4114d55352?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1564466809058-bf4114d55352?w=300&h=400&fit=crop&q=80",
     style: "realism", placement: "shoulder", category: "wolf",
     meanings: ["loyalty", "instinct", "freedom"], audience: "men",
     tags: ["realism", "wolf", "animal", "moon", "shoulder"],
@@ -178,7 +189,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "17", title: "Peony Flower Sleeve", slug: "peony-sleeve",
     description: "Soft peony flowers with leaves and vines.",
-    imageUrl: unsplashUrl("1542727365-19732a80dcfd"), thumbnailUrl: unsplashUrl("1542727365-19732a80dcfd", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=300&h=400&fit=crop&q=80",
     style: "watercolor", placement: "full-sleeve", category: "floral",
     meanings: ["prosperity", "honor", "romance"], audience: "women",
     tags: ["watercolor", "peony", "floral", "sleeve", "feminine"],
@@ -188,7 +200,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "18", title: "Delicate Lotus", slug: "delicate-lotus",
     description: "Minimalist lotus flower emerging from water.",
-    imageUrl: unsplashUrl("1598371839696-5c5cda994e28"), thumbnailUrl: unsplashUrl("1598371839696-5c5cda994e28", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=300&h=400&fit=crop&q=80",
     style: "fineline", placement: "ankle", category: "floral",
     meanings: ["purity", "enlightenment", "rebirth"], audience: "women",
     tags: ["fineline", "lotus", "floral", "ankle", "delicate"],
@@ -199,7 +212,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "19", title: "Sugar Skull", slug: "sugar-skull",
     description: "Colorful Day of the Dead sugar skull with flowers.",
-    imageUrl: unsplashUrl("1611501275019-9b5cda994e8d"), thumbnailUrl: unsplashUrl("1611501275019-9b5cda994e8d", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1504196606672-aef5c9cefc92?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1504196606672-aef5c9cefc92?w=300&h=400&fit=crop&q=80",
     style: "illustrative", placement: "thigh", category: "skull",
     meanings: ["death", "celebration", "life"], audience: "unisex",
     tags: ["illustrative", "skull", "sugar", "colorful", "thigh"],
@@ -209,7 +223,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "20", title: "Geometric Skull", slug: "geometric-skull",
     description: "Low-poly geometric skull with clean lines.",
-    imageUrl: unsplashUrl("1590246815117-1fe56c231f43"), thumbnailUrl: unsplashUrl("1590246815117-1fe56c231f43", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?w=300&h=400&fit=crop&q=80",
     style: "geometric", placement: "forearm", category: "skull",
     meanings: ["mortality", "transformation"], audience: "men",
     tags: ["geometric", "skull", "polygon", "forearm", "modern"],
@@ -220,7 +235,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "21", title: "Monarch Butterfly", slug: "monarch-butterfly",
     description: "Realistic monarch butterfly with watercolor splash.",
-    imageUrl: unsplashUrl("1562962230-16e4623d36e6"), thumbnailUrl: unsplashUrl("1562962230-16e4623d36e6", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&h=400&fit=crop&q=80",
     style: "watercolor", placement: "shoulder", category: "butterfly",
     meanings: ["transformation", "freedom", "beauty"], audience: "women",
     tags: ["watercolor", "butterfly", "monarch", "shoulder", "colorful"],
@@ -230,7 +246,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "22", title: "Minimalist Butterfly", slug: "minimalist-butterfly",
     description: "Single line butterfly silhouette.",
-    imageUrl: unsplashUrl("1475403614135-5f1aa0eb5015"), thumbnailUrl: unsplashUrl("1475403614135-5f1aa0eb5015", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300&h=400&fit=crop&q=80",
     style: "minimalist", placement: "wrist", category: "butterfly",
     meanings: ["change", "grace"], audience: "women",
     tags: ["minimalist", "butterfly", "line", "wrist", "simple"],
@@ -241,7 +258,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "23", title: "Celtic Cross", slug: "celtic-cross",
     description: "Ornate Celtic cross with knotwork patterns.",
-    imageUrl: unsplashUrl("1598371839696-5c5cda994e28"), thumbnailUrl: unsplashUrl("1598371839696-5c5cda994e28", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1614179688766-3d197a6996c4?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1614179688766-3d197a6996c4?w=300&h=400&fit=crop&q=80",
     style: "blackwork", placement: "upper-arm", category: "cross",
     meanings: ["faith", "heritage", "eternity"], audience: "men",
     tags: ["blackwork", "cross", "celtic", "religious", "upper-arm"],
@@ -251,7 +269,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "24", title: "Rose Cross", slug: "rose-cross",
     description: "Cross intertwined with blooming roses.",
-    imageUrl: unsplashUrl("1565058379802-bbe93b2f703a"), thumbnailUrl: unsplashUrl("1565058379802-bbe93b2f703a", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=300&h=400&fit=crop&q=80",
     style: "neo-traditional", placement: "chest", category: "cross",
     meanings: ["faith", "sacrifice", "love"], audience: "unisex",
     tags: ["neo-traditional", "cross", "rose", "religious", "chest"],
@@ -262,7 +281,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "25", title: "Vintage Compass", slug: "vintage-compass",
     description: "Antique compass with world map and coordinates.",
-    imageUrl: unsplashUrl("1611501275019-9b5cda994e8d"), thumbnailUrl: unsplashUrl("1611501275019-9b5cda994e8d", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1518098268026-4e89f1a2cd8e?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1518098268026-4e89f1a2cd8e?w=300&h=400&fit=crop&q=80",
     style: "traditional", placement: "forearm", category: "compass",
     meanings: ["direction", "adventure", "home"], audience: "men",
     tags: ["traditional", "compass", "map", "travel", "forearm"],
@@ -272,7 +292,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "26", title: "Geometric Compass", slug: "geometric-compass",
     description: "Modern geometric compass with clean lines.",
-    imageUrl: unsplashUrl("1590246815117-1fe56c231f43"), thumbnailUrl: unsplashUrl("1590246815117-1fe56c231f43", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?w=300&h=400&fit=crop&q=80",
     style: "geometric", placement: "wrist", category: "compass",
     meanings: ["guidance", "purpose"], audience: "unisex",
     tags: ["geometric", "compass", "minimal", "wrist"],
@@ -283,7 +304,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "27", title: "Tribal Wolf", slug: "tribal-wolf",
     description: "Polynesian tribal wolf pattern.",
-    imageUrl: unsplashUrl("1562962230-16e4623d36e6"), thumbnailUrl: unsplashUrl("1562962230-16e4623d36e6", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1564466809058-bf4114d55352?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1564466809058-bf4114d55352?w=300&h=400&fit=crop&q=80",
     style: "tribal", placement: "shoulder", category: "wolf",
     meanings: ["strength", "pack", "instinct"], audience: "men",
     tags: ["tribal", "wolf", "polynesian", "shoulder", "bold"],
@@ -293,7 +315,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "28", title: "Watercolor Wolf", slug: "watercolor-wolf",
     description: "Wolf portrait with watercolor splash background.",
-    imageUrl: unsplashUrl("1542727365-19732a80dcfd"), thumbnailUrl: unsplashUrl("1542727365-19732a80dcfd", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1551913902-c92207136625?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1551913902-c92207136625?w=300&h=400&fit=crop&q=80",
     style: "watercolor", placement: "thigh", category: "wolf",
     meanings: ["loyalty", "wildness"], audience: "unisex",
     tags: ["watercolor", "wolf", "animal", "thigh", "artistic"],
@@ -304,7 +327,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "29", title: "Chinese Dragon Back Piece", slug: "chinese-dragon",
     description: "Majestic Chinese dragon winding across the back.",
-    imageUrl: unsplashUrl("1598371839696-5c5cda994e28"), thumbnailUrl: unsplashUrl("1598371839696-5c5cda994e28", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1614179688766-3d197a6996c4?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1614179688766-3d197a6996c4?w=300&h=400&fit=crop&q=80",
     style: "japanese", placement: "back", category: "dragon",
     meanings: ["power", "luck", "strength"], audience: "men",
     tags: ["japanese", "dragon", "back", "mythology", "large"],
@@ -314,7 +338,8 @@ export const tattoos: Tattoo[] = [
   {
     id: "30", title: "Small Dragon Wrist", slug: "small-dragon-wrist",
     description: "Small minimalist dragon for the wrist.",
-    imageUrl: unsplashUrl("1475403614135-5f1aa0eb5015"), thumbnailUrl: unsplashUrl("1475403614135-5f1aa0eb5015", 300, 400),
+    imageUrl: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&h=800&fit=crop&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300&h=400&fit=crop&q=80",
     style: "minimalist", placement: "wrist", category: "dragon",
     meanings: ["protection", "wisdom"], audience: "unisex",
     tags: ["minimalist", "dragon", "small", "wrist", "simple"],
