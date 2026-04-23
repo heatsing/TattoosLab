@@ -210,7 +210,7 @@ export function TransformCanvas({
       {/* Drag hint */}
       {isReady && !isDragging && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-black/60 backdrop-blur-sm text-white/80 text-sm pointer-events-none">
-          Drag to move â€?Use controls to adjust
+          Drag to move - Use controls to adjust
         </div>
       )}
     </div>
