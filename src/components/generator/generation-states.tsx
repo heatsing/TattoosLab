@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles, Loader2, AlertCircle, ImageIcon, Wand2 } from "lucide-react";
+import { Sparkles, Loader2, AlertCircle, Wand2, RefreshCw, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -141,25 +141,9 @@ export function SuccessState({
         </p>
         <p className="text-sm text-white/60">
           Used {creditsUsed} credit{creditsUsed > 1 ? "s" : ""}
-          {remainingCredits !== undefined &&
-            ` â€?${remainingCredits} remaining`}
+          {remainingCredits !== undefined && ` - ${remainingCredits} remaining`}
         </p>
       </div>
     </div>
-  );
-}
-
-// Helper icon component
-function Check({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-    </svg>
   );
 }
