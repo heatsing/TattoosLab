@@ -1,4 +1,4 @@
-import { openai } from "@/lib/ai/openai";
+import { openaiProvider } from "@/lib/ai/openai";
 import {
   GenerateTattooInput,
   TattooStyle,
@@ -99,16 +99,14 @@ class GenerationService {
       const size = this.getAspectRatioSize(input.aspectRatio);
 
       // Use DALL-E 3 for high-quality tattoo designs
-      const response = await openai.images.generate({
-        model: "dall-e-3",
-        prompt,
-        n: 1,
-        size: `${size.width}x${size.height}` as "1024x1024" | "1024x1792" | "1792x1024",
-        quality: "standard",
-        response_format: "url",
+      const result = await openaiProvider.generateImage({
+        prompt: input.prompt,
+        style: input.style,
+        aspectRatio: input.aspectRatio as any,
+        negativePrompt: undefined,
       });
 
-      const imageUrl = response.data[0]?.url;
+      const imageUrl = result.url;
 
       if (!imageUrl) {
         throw new Error("Failed to generate image");

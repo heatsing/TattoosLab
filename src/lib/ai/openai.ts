@@ -1,9 +1,18 @@
 import OpenAI from "openai";
 import { AIProvider, GenerateImageParams, GenerateImageResult } from "./index";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+let openaiInstance: OpenAI | null = null;
+
+function getOpenai(): OpenAI {
+  if (!openaiInstance) {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error("OPENAI_API_KEY environment variable is not set");
+    }
+    openaiInstance = new OpenAI({ apiKey });
+  }
+  return openaiInstance;
+}
 
 const aspectRatioToSize: Record<string, { width: number; height: number }> = {
   SQUARE: { width: 1024, height: 1024 },
@@ -27,6 +36,7 @@ export class OpenAIProvider implements AIProvider {
     }
     enhancedPrompt = `${enhancedPrompt}, professional tattoo design, clean lines, high quality, isolated on white background, tattoo flash art`;
 
+    const openai = getOpenai();
     const response = await openai.images.generate({
       model: "dall-e-3",
       prompt: enhancedPrompt,
@@ -39,7 +49,7 @@ export class OpenAIProvider implements AIProvider {
       }),
     });
 
-    const imageUrl = response.data[0]?.url;
+    const imageUrl = response.data?.[0]?.url;
     if (!imageUrl) {
       throw new Error("Failed to generate image");
     }
@@ -50,7 +60,7 @@ export class OpenAIProvider implements AIProvider {
       height: size.height,
       provider: this.name,
       metadata: {
-        revisedPrompt: response.data[0]?.revised_prompt,
+        revisedPrompt: response.data?.[0]?.revised_prompt,
       },
     };
   }
