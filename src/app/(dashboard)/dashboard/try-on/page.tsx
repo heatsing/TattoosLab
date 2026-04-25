@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { Suspense, useState, useRef, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Camera, Save, Download, Loader2, Plus, ChevronLeft, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,14 @@ const defaultTransform: TransformState = {
 };
 
 export default function TryOnPage() {
+  return (
+    <Suspense fallback={<TryOnPageFallback />}>
+      <TryOnPageContent />
+    </Suspense>
+  );
+}
+
+function TryOnPageContent() {
   const searchParams = useSearchParams();
   const projectId = searchParams.get("id");
   const canvasRef = useRef<{ exportImage: () => string }>(null);
@@ -321,6 +329,14 @@ export default function TryOnPage() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function TryOnPageFallback() {
+  return (
+    <div className="min-h-screen bg-black flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-brand-500" />
     </div>
   );
 }

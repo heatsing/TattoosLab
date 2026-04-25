@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { CreditCard, Loader2, ExternalLink } from "lucide-react";
@@ -12,6 +12,14 @@ import { UsageBar } from "@/components/subscription/credit-display";
 import { plans, formatPrice } from "@/lib/stripe/plans";
 
 export default function SettingsPage() {
+  return (
+    <Suspense fallback={<SettingsPageFallback />}>
+      <SettingsPageContent />
+    </Suspense>
+  );
+}
+
+function SettingsPageContent() {
   const searchParams = useSearchParams();
   const { subscription, usage, isLoading, refresh } = useSubscription();
 
@@ -179,6 +187,14 @@ export default function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function SettingsPageFallback() {
+  return (
+    <div className="flex items-center justify-center h-64">
+      <Loader2 className="h-8 w-8 animate-spin text-brand-500" />
     </div>
   );
 }

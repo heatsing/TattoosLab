@@ -121,7 +121,7 @@ export default function ContactPage() {
             <Card className="border-white/10 bg-white/5">
               <CardContent className="p-8">
                 <h2 className="text-2xl font-bold text-white mb-6">Send a Message</h2>
-                <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                <form className="space-y-4">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm text-white/70 mb-1 block">Name</label>
@@ -144,7 +144,7 @@ export default function ContactPage() {
                       className="flex w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 focus-visible:ring-offset-2"
                     />
                   </div>
-                  <Button type="submit" className="w-full gap-2">
+                  <Button type="button" className="w-full gap-2">
                     <Send className="h-4 w-4" />
                     Send Message
                   </Button>
