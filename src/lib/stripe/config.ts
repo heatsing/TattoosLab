@@ -1,13 +1,30 @@
 import Stripe from "stripe";
 
-// Initialize Stripe with the secret key
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
-  typescript: true,
-});
+let stripeClient: Stripe | null = null;
 
-// Stripe webhook secret for verifying webhook signatures
-export const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+function getRequiredEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+  return value;
+}
+
+// Initialize Stripe lazily so route modules can be imported during build.
+export function getStripe(): Stripe {
+  if (!stripeClient) {
+    stripeClient = new Stripe(getRequiredEnv("STRIPE_SECRET_KEY"), {
+      apiVersion: "2024-06-20",
+      typescript: true,
+    });
+  }
+
+  return stripeClient;
+}
+
+export function getWebhookSecret(): string {
+  return getRequiredEnv("STRIPE_WEBHOOK_SECRET");
+}
 
 // Price IDs from environment variables
 export const priceIds = {

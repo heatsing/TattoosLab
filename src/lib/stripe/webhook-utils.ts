@@ -1,4 +1,4 @@
-import { stripe } from "./config";
+import { getStripe } from "./config";
 import { db as prisma } from "@/lib/db";
 import { SubscriptionTier, SubscriptionStatus } from "@prisma/client";
 import Stripe from "stripe";
@@ -40,6 +40,7 @@ function mapPriceToTier(priceId: string): SubscriptionTier {
 export async function handleCheckoutCompleted(
   session: Stripe.Checkout.Session
 ) {
+  const stripe = getStripe();
   const customerId = session.customer as string;
   const userId = session.client_reference_id;
 
@@ -112,6 +113,7 @@ export async function handleCheckoutCompleted(
 
 // Handle invoice.payment_succeeded (recurring payments)
 export async function handleInvoicePaid(invoice: Stripe.Invoice) {
+  const stripe = getStripe();
   const subscriptionId = invoice.subscription as string;
   
   if (!subscriptionId) return;

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { stripe } from "@/lib/stripe/config";
+import { getStripe } from "@/lib/stripe/config";
 import { db as prisma } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
   try {
+    const stripe = getStripe();
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json(

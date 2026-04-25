@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { stripe, webhookSecret } from "@/lib/stripe/config";
+import { getStripe, getWebhookSecret } from "@/lib/stripe/config";
 import {
   handleCheckoutCompleted,
   handleInvoicePaid,
@@ -17,7 +17,12 @@ export async function POST(req: NextRequest) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+    const stripe = getStripe();
+    event = stripe.webhooks.constructEvent(
+      payload,
+      signature,
+      getWebhookSecret()
+    );
   } catch (err: any) {
     console.error(`Webhook signature verification failed: ${err.message}`);
     return NextResponse.json(
