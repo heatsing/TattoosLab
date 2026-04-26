@@ -29,6 +29,7 @@ import {
   ColorMode,
   AspectRatio,
 } from "@/lib/validations/generation";
+import { useSubscription } from "@/hooks/use-subscription";
 import { toast } from "sonner";
 
 type GenerationStatus = "idle" | "loading" | "success" | "error";
@@ -41,6 +42,8 @@ interface GenerationResult {
 }
 
 export default function GeneratePage() {
+  const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
+
   // Form state
   const [prompt, setPrompt] = useState("");
   const [style, setStyle] = useState<TattooStyle>("geometric");
@@ -164,8 +167,13 @@ export default function GeneratePage() {
   };
 
   const handleSaveResult = async (resultId: string) => {
-    // TODO: Implement save functionality
-    toast.success("Saved to your gallery!");
+    const selectedResult = results.find((result) => result.id === resultId);
+    if (!selectedResult) {
+      toast.error("Design not found");
+      return;
+    }
+
+    toast.success("This design is already saved in your generation history.");
   };
 
   return (
@@ -185,7 +193,11 @@ export default function GeneratePage() {
             </div>
             <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10">
               <Zap className="h-4 w-4 text-yellow-400" />
-              <span className="text-sm text-white">12 credits remaining</span>
+              <span className="text-sm text-white">
+                {isSubscriptionLoading
+                  ? "Loading credits..."
+                  : `${subscription?.credits ?? 0} credits remaining`}
+              </span>
             </div>
           </div>
         </div>
@@ -234,7 +246,7 @@ export default function GeneratePage() {
                 {/* Reference Image */}
                 <ReferenceUploader
                   value={referenceImageUrl}
-                  onChange={setReferenceImageUrl}
+                  onChange={(url) => setReferenceImageUrl(url ?? "")}
                 />
               </div>
 

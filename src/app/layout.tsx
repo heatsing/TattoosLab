@@ -10,7 +10,10 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+const metadataBaseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(metadataBaseUrl),
   title: "Tattoos Lab - AI Tattoo Generator",
   description:
     "Create stunning AI-generated tattoo designs. Preview tattoos on your body with our AR try-on feature.",

@@ -11,6 +11,8 @@ export interface GenerationResult {
   imageUrl: string;
   prompt: string;
   style: TattooStyle;
+  width: number;
+  height: number;
   createdAt: Date;
 }
 
@@ -96,14 +98,14 @@ class GenerationService {
   ): Promise<GenerationResult> {
     try {
       const prompt = this.buildPrompt(input);
-      const size = this.getAspectRatioSize(input.aspectRatio);
 
       // Use DALL-E 3 for high-quality tattoo designs
       const result = await openaiProvider.generateImage({
-        prompt: input.prompt,
+        prompt,
         style: input.style,
-        aspectRatio: input.aspectRatio as any,
-        negativePrompt: undefined,
+        aspectRatio: mapAspectRatioForProvider(input.aspectRatio),
+        negativePrompt: input.negativePrompt,
+        referenceImageUrl: input.referenceImageUrl || undefined,
       });
 
       const imageUrl = result.url;
@@ -118,6 +120,8 @@ class GenerationService {
         imageUrl,
         prompt: input.prompt,
         style: input.style,
+        width: result.width,
+        height: result.height,
         createdAt: new Date(),
       };
     } catch (error) {
@@ -148,3 +152,18 @@ class GenerationService {
 }
 
 export const generationService = GenerationService.getInstance();
+
+function mapAspectRatioForProvider(
+  aspectRatio: GenerateTattooInput["aspectRatio"]
+): "SQUARE" | "PORTRAIT" | "LANDSCAPE" | "WIDE" {
+  switch (aspectRatio) {
+    case "4:5":
+    case "9:16":
+      return "PORTRAIT";
+    case "16:9":
+      return "WIDE";
+    case "1:1":
+    default:
+      return "SQUARE";
+  }
+}

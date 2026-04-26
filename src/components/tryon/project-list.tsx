@@ -14,7 +14,7 @@ import {
 
 interface TryOnProject {
   id: string;
-  name: string;
+  name: string | null;
   description: string | null;
   bodyPhotoUrl: string;
   tattooImageUrl: string;
@@ -29,6 +29,7 @@ interface ProjectListProps {
   onSelect: (project: TryOnProject) => void;
   onDelete: (id: string) => void;
   selectedId?: string;
+  isLoading?: boolean;
 }
 
 export function ProjectList({
@@ -36,6 +37,7 @@ export function ProjectList({
   onSelect,
   onDelete,
   selectedId,
+  isLoading = false,
 }: ProjectListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -44,6 +46,14 @@ export function ProjectList({
     await onDelete(id);
     setDeletingId(null);
   };
+
+  if (isLoading) {
+    return (
+      <Card className="p-8 text-center border-white/10 bg-white/5">
+        <p className="text-sm text-white/60">Loading projects...</p>
+      </Card>
+    );
+  }
 
   if (projects.length === 0) {
     return (
@@ -74,7 +84,7 @@ export function ProjectList({
             <div className="relative h-16 w-16 rounded-lg overflow-hidden bg-black flex-shrink-0">
               <img
                 src={project.resultUrl || project.bodyPhotoUrl}
-                alt={project.name}
+                alt={project.name || "Try-on project"}
                 className="h-full w-full object-cover"
               />
               {project.status === "EXPORTED" && (
@@ -86,7 +96,9 @@ export function ProjectList({
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <h4 className="font-medium text-white truncate">{project.name}</h4>
+              <h4 className="font-medium text-white truncate">
+                {project.name || "Untitled Project"}
+              </h4>
               <p className="text-sm text-white/60">
                 {formatDistanceToNow(new Date(project.updatedAt), {
                   addSuffix: true,

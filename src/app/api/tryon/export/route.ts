@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { v2 as cloudinary } from "cloudinary";
 import { db as prisma } from "@/lib/db";
-
-// Configure Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import { uploadImage } from "@/lib/cloudinary";
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,7 +22,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify project ownership
     const project = await prisma.tryOnProject.findFirst({
       where: { id: projectId, userId },
     });
@@ -41,28 +33,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Upload to Cloudinary
-    const uploadResult = await cloudinary.uploader.upload(imageData, {
-      folder: "tattoos-lab/try-on-results",
-      public_id: `tryon_${projectId}_${Date.now()}`,
-      overwrite: true,
-      resource_type: "image",
+    const uploaded = await uploadImage(imageData, {
+      folder: "try-on-results",
+      publicId: `tryon_${projectId}_${Date.now()}`,
     });
 
-    // Update project with result URL
     await prisma.tryOnProject.update({
       where: { id: projectId },
       data: {
-        resultUrl: uploadResult.secure_url,
-        resultPublicId: uploadResult.public_id,
+        resultUrl: uploaded.url,
+        resultPublicId: uploaded.publicId,
         status: "EXPORTED",
       },
     });
 
     return NextResponse.json({
       success: true,
-      url: uploadResult.secure_url,
-      publicId: uploadResult.public_id,
+      url: uploaded.url,
+      publicId: uploaded.publicId,
     });
   } catch (error) {
     console.error("Export try-on project error:", error);

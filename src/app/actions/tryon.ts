@@ -2,14 +2,59 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
 import { db as prisma } from "@/lib/db";
 import {
   createTryOnProjectSchema,
   updateTryOnProjectSchema,
   CreateTryOnProjectInput,
   UpdateTryOnProjectInput,
+  BlendMode,
+  TattooSource,
+  TryOnStatus,
 } from "@/lib/validations/tryon";
+
+export interface TryOnProjectSummary {
+  id: string;
+  name: string | null;
+  description: string | null;
+  bodyPhotoUrl: string;
+  tattooImageUrl: string;
+  resultUrl: string | null;
+  status: TryOnStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface TryOnProjectDetail {
+  id: string;
+  name: string | null;
+  description: string | null;
+  bodyPhotoId: string;
+  bodyPhotoUrl: string;
+  tattooImageUrl: string;
+  tattooSource: TattooSource;
+  transform: {
+    positionX: number;
+    positionY: number;
+    scale: number;
+    rotation: number;
+    opacity: number;
+    blendMode: BlendMode;
+    flipX: boolean;
+    flipY: boolean;
+  };
+  resultUrl: string | null;
+  status: TryOnStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface GeneratedTattooOption {
+  id: string;
+  url: string;
+  prompt: string;
+  style: string;
+}
 
 export interface TryOnActionResult<T = unknown> {
   success: boolean;
@@ -40,7 +85,6 @@ export async function createTryOnProject(
       };
     }
 
-    // Verify the body photo belongs to the user
     const bodyPhoto = await prisma.userUpload.findFirst({
       where: { id: input.bodyPhotoId, userId },
     });
@@ -108,7 +152,6 @@ export async function updateTryOnProject(
       };
     }
 
-    // Verify ownership
     const existing = await prisma.tryOnProject.findFirst({
       where: { id: input.id, userId },
     });
@@ -167,7 +210,6 @@ export async function deleteTryOnProject(
       };
     }
 
-    // Verify ownership
     const existing = await prisma.tryOnProject.findFirst({
       where: { id: projectId, userId },
     });
@@ -196,19 +238,7 @@ export async function deleteTryOnProject(
 }
 
 export async function getTryOnProjects(): Promise<
-  TryOnActionResult<
-    {
-      id: string;
-      name: string;
-      description: string | null;
-      bodyPhotoUrl: string;
-      tattooImageUrl: string;
-      resultUrl: string | null;
-      status: string;
-      createdAt: Date;
-      updatedAt: Date;
-    }[]
-  >
+  TryOnActionResult<TryOnProjectSummary[]>
 > {
   try {
     const { userId } = await auth();
@@ -235,7 +265,7 @@ export async function getTryOnProjects(): Promise<
       },
     });
 
-    return { success: true, data: projects };
+    return { success: true, data: projects as TryOnProjectSummary[] };
   } catch (error) {
     console.error("Get try-on projects error:", error);
     return {
@@ -247,30 +277,7 @@ export async function getTryOnProjects(): Promise<
 
 export async function getTryOnProject(
   projectId: string
-): Promise<
-  TryOnActionResult<{
-    id: string;
-    name: string;
-    description: string | null;
-    bodyPhotoUrl: string;
-    tattooImageUrl: string;
-    tattooSource: string;
-    transform: {
-      positionX: number;
-      positionY: number;
-      scale: number;
-      rotation: number;
-      opacity: number;
-      blendMode: string;
-      flipX: boolean;
-      flipY: boolean;
-    };
-    resultUrl: string | null;
-    status: string;
-    createdAt: Date;
-    updatedAt: Date;
-  }>
-> {
+): Promise<TryOnActionResult<TryOnProjectDetail>> {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -297,21 +304,22 @@ export async function getTryOnProject(
         id: project.id,
         name: project.name,
         description: project.description,
+        bodyPhotoId: project.bodyPhotoId,
         bodyPhotoUrl: project.bodyPhotoUrl,
         tattooImageUrl: project.tattooImageUrl,
-        tattooSource: project.tattooSource,
+        tattooSource: project.tattooSource as TattooSource,
         transform: {
           positionX: project.positionX,
           positionY: project.positionY,
           scale: project.scale,
           rotation: project.rotation,
           opacity: project.opacity,
-          blendMode: project.blendMode,
+          blendMode: project.blendMode as BlendMode,
           flipX: project.flipX,
           flipY: project.flipY,
         },
         resultUrl: project.resultUrl,
-        status: project.status,
+        status: project.status as TryOnStatus,
         createdAt: project.createdAt,
         updatedAt: project.updatedAt,
       },
@@ -321,6 +329,72 @@ export async function getTryOnProject(
     return {
       success: false,
       error: { code: "INTERNAL_ERROR", message: "Failed to fetch project" },
+    };
+  }
+}
+
+export async function getGeneratedTattooOptions(): Promise<
+  TryOnActionResult<GeneratedTattooOption[]>
+> {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return {
+        success: false,
+        error: { code: "UNAUTHORIZED", message: "You must be signed in" },
+      };
+    }
+
+    const generations = await prisma.tattooGeneration.findMany({
+      where: {
+        userId,
+        status: "COMPLETED",
+      },
+      orderBy: { createdAt: "desc" },
+      take: 24,
+      select: {
+        id: true,
+        prompt: true,
+        style: {
+          select: {
+            name: true,
+          },
+        },
+        resultImages: {
+          select: {
+            url: true,
+          },
+          orderBy: { createdAt: "asc" },
+          take: 1,
+        },
+      },
+    });
+
+    const data = generations
+      .map((generation) => {
+        const image = generation.resultImages[0];
+        if (!image) {
+          return null;
+        }
+
+        return {
+          id: generation.id,
+          url: image.url,
+          prompt: generation.prompt,
+          style: generation.style.name,
+        };
+      })
+      .filter((item): item is GeneratedTattooOption => item !== null);
+
+    return { success: true, data };
+  } catch (error) {
+    console.error("Get generated tattoo options error:", error);
+    return {
+      success: false,
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "Failed to fetch generated tattoos",
+      },
     };
   }
 }

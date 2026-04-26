@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { plans, formatPrice, Plan } from "@/lib/stripe/plans";
+import { useSubscription } from "@/hooks/use-subscription";
 import { toast } from "sonner";
 
 interface PricingCardsProps {
@@ -14,8 +15,10 @@ interface PricingCardsProps {
 }
 
 export function PricingCards({ currentTier = "FREE" }: PricingCardsProps) {
+  const { subscription } = useSubscription();
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   const [isLoading, setIsLoading] = useState<string | null>(null);
+  const activeTier = subscription?.tier ?? currentTier;
 
   const handleSubscribe = async (planId: string) => {
     if (planId === "FREE") return;
@@ -83,7 +86,7 @@ export function PricingCards({ currentTier = "FREE" }: PricingCardsProps) {
             key={plan.id}
             plan={plan}
             billingCycle={billingCycle}
-            isCurrentPlan={currentTier === plan.id}
+            isCurrentPlan={activeTier === plan.id}
             isLoading={isLoading === plan.id}
             onSubscribe={() => handleSubscribe(plan.id)}
           />

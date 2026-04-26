@@ -474,7 +474,7 @@ export function getRelatedFilters(
     .map((opt) => {
       const count = baseTattoos.filter((t) => {
         if (type === "meaning") return t.meanings.includes(opt.value);
-        return (t as Record<string, unknown>)[type] === opt.value;
+        return (t as unknown as Record<string, unknown>)[type] === opt.value;
       }).length;
       return { type, slug: opt.value, label: opt.label, count };
     })

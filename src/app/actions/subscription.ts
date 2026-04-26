@@ -3,6 +3,10 @@
 import { auth } from "@clerk/nextjs/server";
 import { db as prisma } from "@/lib/db";
 import { SubscriptionTier, SubscriptionStatus } from "@prisma/client";
+import {
+  getCreditBalance,
+  getTierCreditAllowance,
+} from "@/lib/credits/usage";
 
 export interface SubscriptionData {
   tier: SubscriptionTier;
@@ -26,7 +30,6 @@ export async function getCurrentSubscription(): Promise<{
       };
     }
 
-    // Get user with subscription
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: { subscription: true },
@@ -39,8 +42,8 @@ export async function getCurrentSubscription(): Promise<{
       };
     }
 
-    // Return subscription data or default to free
     const subscription = user.subscription;
+    const credits = await getCreditBalance(userId);
 
     return {
       success: true,
@@ -49,7 +52,7 @@ export async function getCurrentSubscription(): Promise<{
         status: subscription?.status || "ACTIVE",
         currentPeriodEnd: subscription?.currentPeriodEnd || new Date(),
         cancelAtPeriodEnd: subscription?.cancelAtPeriodEnd || false,
-        credits: user.credits,
+        credits,
       },
     };
   } catch (error) {
@@ -95,7 +98,6 @@ export async function checkFeatureAccess(feature: string): Promise<{
 
     const currentTier = user.subscription?.tier || "FREE";
 
-    // Feature requirements
     const featureRequirements: Record<string, SubscriptionTier> = {
       tryOn: "PRO",
       hdDownload: "PRO",
@@ -112,18 +114,15 @@ export async function checkFeatureAccess(feature: string): Promise<{
       return { success: true, allowed: true, currentTier };
     }
 
-    // Check if user has required tier
     const tierLevels: Record<SubscriptionTier, number> = {
       FREE: 0,
       PRO: 1,
       STUDIO: 2,
     };
 
-    const allowed = tierLevels[currentTier] >= tierLevels[requiredTier];
-
     return {
       success: true,
-      allowed,
+      allowed: tierLevels[currentTier] >= tierLevels[requiredTier],
       currentTier,
       requiredTier,
     };
@@ -163,7 +162,6 @@ export async function getUsageStats(): Promise<{
         subscription: true,
         _count: {
           select: {
-            generations: true,
             tryOnProjects: true,
           },
         },
@@ -177,7 +175,6 @@ export async function getUsageStats(): Promise<{
       };
     }
 
-    // Get current month's generations
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
@@ -189,16 +186,10 @@ export async function getUsageStats(): Promise<{
       },
     });
 
-    // Calculate credits used (total - current)
-    const tierLimits: Record<SubscriptionTier, number> = {
-      FREE: 5,
-      PRO: 50,
-      STUDIO: 200,
-    };
-
     const tier = user.subscription?.tier || "FREE";
-    const creditsTotal = tierLimits[tier];
-    const creditsUsed = creditsTotal - user.credits;
+    const creditsTotal = getTierCreditAllowance(tier);
+    const creditsRemaining = await getCreditBalance(userId);
+    const creditsUsed = Math.max(0, creditsTotal - creditsRemaining);
 
     return {
       success: true,

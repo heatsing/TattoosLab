@@ -1,23 +1,40 @@
 "use client";
 
-import { Suspense, useState, useRef, useCallback, useEffect } from "react";
+import { Suspense, useState, useRef, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { Camera, Save, Download, Loader2, Plus, ChevronLeft, Sparkles } from "lucide-react";
+import {
+  Camera,
+  Save,
+  Download,
+  Loader2,
+  Plus,
+  ChevronLeft,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ImageUploader } from "@/components/tryon/image-uploader";
 import { TattooSelector } from "@/components/tryon/tattoo-selector";
-import { TransformCanvas } from "@/components/tryon/transform-canvas";
+import {
+  TransformCanvas,
+  TransformCanvasHandle,
+} from "@/components/tryon/transform-canvas";
 import { TransformControls } from "@/components/tryon/transform-controls";
 import { ProjectList } from "@/components/tryon/project-list";
-import { TransformState, CreateTryOnProjectInput } from "@/lib/validations/tryon";
+import {
+  TransformState,
+  CreateTryOnProjectInput,
+} from "@/lib/validations/tryon";
 import {
   createTryOnProject,
   updateTryOnProject,
   deleteTryOnProject,
   getTryOnProjects,
   getTryOnProject,
+  getGeneratedTattooOptions,
+  GeneratedTattooOption,
+  TryOnProjectSummary,
 } from "@/app/actions/tryon";
 import { toast } from "sonner";
 
@@ -42,35 +59,36 @@ export default function TryOnPage() {
 
 function TryOnPageContent() {
   const searchParams = useSearchParams();
-  const projectId = searchParams.get("id");
-  const canvasRef = useRef<{ exportImage: () => string }>(null);
+  const projectIdFromUrl = searchParams.get("id");
+  const canvasRef = useRef<TransformCanvasHandle>(null);
 
-  // Project state
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [projectName, setProjectName] = useState("New Try-On Project");
   const [bodyPhotoUrl, setBodyPhotoUrl] = useState("");
   const [bodyPhotoId, setBodyPhotoId] = useState("");
   const [tattooUrl, setTattooUrl] = useState("");
-  const [tattooSource, setTattooSource] = useState<"GENERATED" | "UPLOADED" | "GALLERY">("GENERATED");
+  const [tattooSource, setTattooSource] = useState<
+    "GENERATED" | "UPLOADED" | "GALLERY" | "PRESET"
+  >("GENERATED");
   const [transform, setTransform] = useState<TransformState>(defaultTransform);
-
-  // UI state
   const [activeView, setActiveView] = useState<"editor" | "projects">("editor");
   const [isSaving, setIsSaving] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<TryOnProjectSummary[]>([]);
+  const [generatedTattoos, setGeneratedTattoos] = useState<
+    GeneratedTattooOption[]
+  >([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState(false);
 
-  // Load projects on mount
   useEffect(() => {
-    loadProjects();
+    void Promise.all([loadProjects(), loadGeneratedTattoos()]);
   }, []);
 
-  // Load project if ID in URL
   useEffect(() => {
-    if (projectId) {
-      loadProject(projectId);
+    if (projectIdFromUrl) {
+      void loadProject(projectIdFromUrl);
     }
-  }, [projectId]);
+  }, [projectIdFromUrl]);
 
   const loadProjects = async () => {
     setIsLoadingProjects(true);
@@ -81,27 +99,92 @@ function TryOnPageContent() {
     setIsLoadingProjects(false);
   };
 
+  const loadGeneratedTattoos = async () => {
+    const result = await getGeneratedTattooOptions();
+    if (result.success && result.data) {
+      setGeneratedTattoos(result.data);
+    }
+  };
+
   const loadProject = async (id: string) => {
     const result = await getTryOnProject(id);
     if (result.success && result.data) {
       const project = result.data;
-      setProjectName(project.name);
+      setCurrentProjectId(project.id);
+      setProjectName(project.name || "Untitled Project");
       setBodyPhotoUrl(project.bodyPhotoUrl);
       setBodyPhotoId(project.bodyPhotoId);
       setTattooUrl(project.tattooImageUrl);
-      setTattooSource(project.tattooSource as any);
+      setTattooSource(project.tattooSource);
       setTransform(project.transform);
       setActiveView("editor");
     }
   };
 
-  const handleSave = async () => {
-    if (!bodyPhotoUrl || !tattooUrl) {
-      toast.error("Please upload both a body photo and select a tattoo");
-      return;
+  const uploadAsset = useCallback(
+    async (file: File, type: "BODY_PHOTO" | "REFERENCE") => {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("type", type);
+
+      const response = await fetch("/api/uploads", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Upload failed");
+      }
+
+      return data as { uploadId: string; url: string };
+    },
+    []
+  );
+
+  const handleBodyPhotoUpload = useCallback(
+    async (file: File) => {
+      const uploaded = await uploadAsset(file, "BODY_PHOTO");
+      setBodyPhotoId(uploaded.uploadId);
+      return uploaded.url;
+    },
+    [uploadAsset]
+  );
+
+  const handleTattooUpload = useCallback(
+    async (file: File) => {
+      const uploaded = await uploadAsset(file, "REFERENCE");
+      return uploaded.url;
+    },
+    [uploadAsset]
+  );
+
+  const handleReferenceImageSelection = () => {
+    if (!generatedTattoos.length) {
+      toast.info("Generate a tattoo first, then come back to try it on.");
+    }
+  };
+
+  const persistProject = async (): Promise<string | null> => {
+    if (!bodyPhotoUrl || !bodyPhotoId || !tattooUrl) {
+      toast.error("Please upload a body photo and select a tattoo");
+      return null;
     }
 
-    setIsSaving(true);
+    if (currentProjectId) {
+      const result = await updateTryOnProject({
+        id: currentProjectId,
+        name: projectName,
+        transform,
+      });
+
+      if (!result.success) {
+        toast.error(result.error?.message || "Failed to update project");
+        return null;
+      }
+
+      return currentProjectId;
+    }
 
     const input: CreateTryOnProjectInput = {
       name: projectName,
@@ -113,12 +196,22 @@ function TryOnPageContent() {
     };
 
     const result = await createTryOnProject(input);
-    
-    if (result.success) {
-      toast.success("Project saved successfully!");
-      loadProjects();
-    } else {
+    if (!result.success || !result.data) {
       toast.error(result.error?.message || "Failed to save project");
+      return null;
+    }
+
+    setCurrentProjectId(result.data.id);
+    return result.data.id;
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    const savedId = await persistProject();
+
+    if (savedId) {
+      toast.success("Project saved successfully!");
+      await loadProjects();
     }
 
     setIsSaving(false);
@@ -130,19 +223,40 @@ function TryOnPageContent() {
     setIsExporting(true);
 
     try {
+      const savedProjectId = await persistProject();
+      if (!savedProjectId) {
+        setIsExporting(false);
+        return;
+      }
+
       const imageData = canvasRef.current.exportImage();
-      
-      // Download locally
+      const response = await fetch("/api/tryon/export", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          projectId: savedProjectId,
+          imageData,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to export image");
+      }
+
       const link = document.createElement("a");
-      link.href = imageData;
+      link.href = data.url || imageData;
       link.download = `tattoo-try-on-${Date.now()}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
+      await loadProjects();
       toast.success("Image exported successfully!");
     } catch (error) {
-      toast.error("Failed to export image");
+      toast.error(error instanceof Error ? error.message : "Failed to export image");
     }
 
     setIsExporting(false);
@@ -151,8 +265,11 @@ function TryOnPageContent() {
   const handleDelete = async (id: string) => {
     const result = await deleteTryOnProject(id);
     if (result.success) {
+      if (currentProjectId === id) {
+        resetEditor();
+      }
       toast.success("Project deleted");
-      loadProjects();
+      await loadProjects();
     } else {
       toast.error("Failed to delete project");
     }
@@ -162,19 +279,31 @@ function TryOnPageContent() {
     setTransform(defaultTransform);
   };
 
-  const canEdit = bodyPhotoUrl && tattooUrl;
+  const resetEditor = () => {
+    setCurrentProjectId(null);
+    setProjectName("New Try-On Project");
+    setBodyPhotoUrl("");
+    setBodyPhotoId("");
+    setTattooUrl("");
+    setTattooSource("GENERATED");
+    setTransform(defaultTransform);
+    setActiveView("editor");
+  };
+
+  const canEdit = Boolean(bodyPhotoUrl && tattooUrl);
 
   return (
     <div className="min-h-screen bg-black pb-12">
-      {/* Header */}
-      <div className="border-b border-white/10 bg-black/50 backdrop-blur-xl sticky top-16 z-30">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
+      <div className="sticky top-16 z-30 border-b border-white/10 bg-black/50 backdrop-blur-xl">
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setActiveView(activeView === "editor" ? "projects" : "editor")}
+                onClick={() =>
+                  setActiveView(activeView === "editor" ? "projects" : "editor")
+                }
               >
                 {activeView === "editor" ? (
                   <ChevronLeft className="h-5 w-5" />
@@ -183,7 +312,7 @@ function TryOnPageContent() {
                 )}
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
                   <Camera className="h-6 w-6 text-brand-400" />
                   Tattoo Try-On
                 </h1>
@@ -195,26 +324,19 @@ function TryOnPageContent() {
 
             {activeView === "editor" && canEdit && (
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  onClick={handleSave}
-                  disabled={isSaving}
-                >
+                <Button variant="outline" onClick={handleSave} disabled={isSaving}>
                   {isSaving ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
-                    <Save className="h-4 w-4 mr-2" />
+                    <Save className="mr-2 h-4 w-4" />
                   )}
                   Save
                 </Button>
-                <Button
-                  onClick={handleExport}
-                  disabled={isExporting}
-                >
+                <Button onClick={handleExport} disabled={isExporting}>
                   {isExporting ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
-                    <Download className="h-4 w-4 mr-2" />
+                    <Download className="mr-2 h-4 w-4" />
                   )}
                   Export
                 </Button>
@@ -224,47 +346,50 @@ function TryOnPageContent() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {activeView === "projects" ? (
-          <div className="max-w-2xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
+          <div className="mx-auto max-w-2xl">
+            <div className="mb-6 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-white">Your Projects</h2>
-              <Button onClick={() => setActiveView("editor")}>
-                <Plus className="h-4 w-4 mr-2" />
+              <Button onClick={resetEditor}>
+                <Plus className="mr-2 h-4 w-4" />
                 New Project
               </Button>
             </div>
             <ProjectList
               projects={projects}
               onSelect={(project) => {
-                loadProject(project.id);
+                void loadProject(project.id);
               }}
               onDelete={handleDelete}
+              selectedId={currentProjectId || undefined}
+              isLoading={isLoadingProjects}
             />
           </div>
         ) : (
           <div className="grid gap-8 lg:grid-cols-12">
-            {/* Left Panel - Inputs */}
-            <div className="lg:col-span-3 space-y-6">
-              <Card className="p-4 border-white/10 bg-white/5">
-                <label className="text-sm font-medium text-white mb-3 block">
+            <div className="space-y-6 lg:col-span-3">
+              <Card className="border-white/10 bg-white/5 p-4">
+                <label className="mb-3 block text-sm font-medium text-white">
                   Project Name
                 </label>
                 <Input
                   value={projectName}
                   onChange={(e) => setProjectName(e.target.value)}
                   placeholder="Enter project name"
-                  className="bg-white/5 border-white/10"
+                  className="border-white/10 bg-white/5"
                 />
               </Card>
 
               <ImageUploader
                 value={bodyPhotoUrl}
-                onChange={(url, file) => {
+                onChange={(url) => {
                   setBodyPhotoUrl(url);
-                  // TODO: Upload file and get ID
-                  setBodyPhotoId("temp-id");
+                  if (!url) {
+                    setBodyPhotoId("");
+                  }
                 }}
+                onUpload={handleBodyPhotoUpload}
                 label="Body Photo"
                 description="Upload a photo of your body"
                 aspectRatio="portrait"
@@ -276,35 +401,35 @@ function TryOnPageContent() {
                   setTattooUrl(url);
                   setTattooSource(source);
                 }}
-                generatedTattoos={[]}
+                onUpload={handleTattooUpload}
+                generatedTattoos={generatedTattoos}
+                onEmptyGeneratedClick={handleReferenceImageSelection}
               />
             </div>
 
-            {/* Center - Canvas */}
             <div className="lg:col-span-6">
               {canEdit ? (
                 <TransformCanvas
-                  ref={canvasRef as any}
+                  ref={canvasRef}
                   bodyImageUrl={bodyPhotoUrl}
                   tattooImageUrl={tattooUrl}
                   transform={transform}
                   onTransformChange={setTransform}
-                  className="w-full aspect-[3/4] rounded-xl"
+                  className="aspect-[3/4] w-full rounded-xl"
                 />
               ) : (
-                <Card className="aspect-[3/4] flex flex-col items-center justify-center border-white/10 bg-white/5 border-dashed">
-                  <Camera className="h-16 w-16 text-white/20 mb-4" />
-                  <h3 className="text-lg font-medium text-white mb-2">
+                <Card className="flex aspect-[3/4] flex-col items-center justify-center border-dashed border-white/10 bg-white/5">
+                  <Camera className="mb-4 h-16 w-16 text-white/20" />
+                  <h3 className="mb-2 text-lg font-medium text-white">
                     Ready to Preview
                   </h3>
-                  <p className="text-white/60 text-center max-w-sm">
+                  <p className="max-w-sm text-center text-white/60">
                     Upload a body photo and select a tattoo design to start
                   </p>
                 </Card>
               )}
             </div>
 
-            {/* Right Panel - Controls */}
             <div className="lg:col-span-3">
               {canEdit ? (
                 <TransformControls
@@ -313,10 +438,10 @@ function TryOnPageContent() {
                   onReset={handleReset}
                 />
               ) : (
-                <Card className="p-6 border-white/10 bg-white/5">
+                <Card className="border-white/10 bg-white/5 p-6">
                   <div className="text-center">
-                    <Sparkles className="h-12 w-12 text-white/20 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-white mb-2">
+                    <Sparkles className="mx-auto mb-4 h-12 w-12 text-white/20" />
+                    <h3 className="mb-2 text-lg font-medium text-white">
                       Transform Controls
                     </h3>
                     <p className="text-sm text-white/60">
@@ -335,7 +460,7 @@ function TryOnPageContent() {
 
 function TryOnPageFallback() {
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center bg-black">
       <Loader2 className="h-8 w-8 animate-spin text-brand-500" />
     </div>
   );

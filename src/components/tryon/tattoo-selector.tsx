@@ -11,6 +11,7 @@ interface TattooSelectorProps {
   onChange: (url: string, source: "GENERATED" | "UPLOADED" | "GALLERY") => void;
   onUpload?: (file: File) => Promise<string>;
   generatedTattoos?: { id: string; url: string; prompt: string }[];
+  onEmptyGeneratedClick?: () => void;
 }
 
 type TabType = "generated" | "upload" | "gallery";
@@ -20,6 +21,7 @@ export function TattooSelector({
   onChange,
   onUpload,
   generatedTattoos = [],
+  onEmptyGeneratedClick,
 }: TattooSelectorProps) {
   const [activeTab, setActiveTab] = useState<TabType>("generated");
   const [isUploading, setIsUploading] = useState(false);
@@ -78,7 +80,12 @@ export function TattooSelector({
               <div className="text-center py-8">
                 <Sparkles className="h-12 w-12 text-white/20 mx-auto mb-3" />
                 <p className="text-white/60">No generated designs yet</p>
-                <Button variant="outline" size="sm" className="mt-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                  onClick={onEmptyGeneratedClick}
+                >
                   Generate a Tattoo
                 </Button>
               </div>
