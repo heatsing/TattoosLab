@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { ImageIcon, Upload, Sparkles, Grid3X3 } from "lucide-react";
+import { Upload, Sparkles, Grid3X3 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { communityGalleryItems } from "@/lib/gallery/community-gallery";
 
 interface TattooSelectorProps {
   value?: string;
@@ -153,9 +154,62 @@ export function TattooSelector({
         )}
 
         {activeTab === "gallery" && (
-          <div className="text-center py-8">
-            <Grid3X3 className="h-12 w-12 text-white/20 mx-auto mb-3" />
-            <p className="text-white/60">Community gallery coming soon</p>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-medium text-white">Community flash library</p>
+              <p className="mt-1 text-xs text-white/50">
+                Pick a public tattoo draft and place it on your body photo.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {communityGalleryItems.map((tattoo) => (
+                <button
+                  key={tattoo.id}
+                  onClick={() => onChange(tattoo.image, "GALLERY")}
+                  className={cn(
+                    "rounded-xl border p-2 text-left transition-all",
+                    value === tattoo.image
+                      ? "border-brand-500 bg-brand-500/10 ring-2 ring-brand-500/20"
+                      : "border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.05]"
+                  )}
+                >
+                  <div className="relative overflow-hidden rounded-lg bg-[radial-gradient(circle_at_top,#42362c,transparent_56%),linear-gradient(160deg,#f6efdf_0%,#eadcc3_52%,#f8f3e8_100%)] aspect-square">
+                    <div className="absolute inset-2 rounded-[18px] border border-black/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.68),rgba(255,255,255,0.12))]" />
+                    <div className="absolute inset-0 flex items-center justify-center p-5">
+                      <img
+                        src={tattoo.image}
+                        alt={tattoo.prompt}
+                        className="h-full w-full object-contain drop-shadow-[0_14px_22px_rgba(0,0,0,0.16)]"
+                      />
+                    </div>
+                    {value === tattoo.image && (
+                      <div className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-brand-600 text-white shadow-lg">
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  <p className="mt-2 line-clamp-2 text-xs font-medium text-white/90">
+                    {tattoo.prompt}
+                  </p>
+                  <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-white/40">
+                    {tattoo.style}
+                  </p>
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </Card>

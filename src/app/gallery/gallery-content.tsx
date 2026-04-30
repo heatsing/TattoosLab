@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import Image from "next/image";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,232 +21,15 @@ import {
   LayoutList,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
-
-const categories = [
-  "All",
-  "Geometric",
-  "Watercolor",
-  "Minimalist",
-  "Traditional",
-  "Japanese",
-  "Blackwork",
-  "Neo-Traditional",
-  "Dotwork",
-  "Tribal",
-  "Realism",
-];
+import {
+  communityGalleryCategories,
+  communityGalleryItems,
+} from "@/lib/gallery/community-gallery";
 
 const sortOptions = [
   { label: "Most Popular", value: "popular" },
   { label: "Newest", value: "newest" },
   { label: "Most Liked", value: "liked" },
-];
-
-const galleryItems = [
-  {
-    id: 1,
-    style: "Geometric",
-    prompt: "Sacred geometry mandala with golden ratios and hexagonal patterns",
-    image: "https://images.unsplash.com/photo-1614179688766-3d197a6996c4?w=600&h=600&fit=crop&q=80",
-    artist: "Alex Chen",
-    avatar: "AC",
-    likes: 234,
-    views: 1205,
-    placement: "Forearm",
-    colorMode: "Black & Grey",
-    resolution: "2048x2048",
-    generationTime: "12s",
-    isHot: true,
-    isNew: false,
-    createdAt: "2024-12-15",
-  },
-  {
-    id: 2,
-    style: "Watercolor",
-    prompt: "Flowing abstract ocean waves with coral reef details",
-    image: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=600&h=600&fit=crop&q=80",
-    artist: "Mia Torres",
-    avatar: "MT",
-    likes: 189,
-    views: 892,
-    placement: "Shoulder",
-    colorMode: "Full Color",
-    resolution: "2048x2048",
-    generationTime: "18s",
-    isHot: false,
-    isNew: true,
-    createdAt: "2025-01-20",
-  },
-  {
-    id: 3,
-    style: "Minimalist",
-    prompt: "Single continuous line portrait silhouette of a woman",
-    image: "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?w=600&h=600&fit=crop&q=80",
-    artist: "Jonas Weber",
-    avatar: "JW",
-    likes: 312,
-    views: 1543,
-    placement: "Wrist",
-    colorMode: "Black & Grey",
-    resolution: "1024x1024",
-    generationTime: "8s",
-    isHot: true,
-    isNew: false,
-    createdAt: "2024-11-08",
-  },
-  {
-    id: 4,
-    style: "Traditional",
-    prompt: "Classic nautical anchor wrapped in rope with rose banner",
-    image: "https://images.unsplash.com/photo-1590246814801-867517deb529?w=600&h=600&fit=crop&q=80",
-    artist: "Sarah Kim",
-    avatar: "SK",
-    likes: 156,
-    views: 678,
-    placement: "Chest",
-    colorMode: "Full Color",
-    resolution: "1024x1024",
-    generationTime: "14s",
-    isHot: false,
-    isNew: false,
-    createdAt: "2024-10-22",
-  },
-  {
-    id: 5,
-    style: "Japanese",
-    prompt: "Koi fish swimming upstream through cherry blossom petals",
-    image: "https://images.unsplash.com/photo-1551913902-c92207136625?w=600&h=600&fit=crop&q=80",
-    artist: "Kenji Sato",
-    avatar: "KS",
-    likes: 278,
-    views: 1102,
-    placement: "Back",
-    colorMode: "Full Color",
-    resolution: "2048x2048",
-    generationTime: "22s",
-    isHot: true,
-    isNew: true,
-    createdAt: "2025-01-18",
-  },
-  {
-    id: 6,
-    style: "Blackwork",
-    prompt: "Intricate sacred dot pattern mandala with floral elements",
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=600&fit=crop&q=80",
-    artist: "Luna Reyes",
-    avatar: "LR",
-    likes: 198,
-    views: 845,
-    placement: "Thigh",
-    colorMode: "Black & Grey",
-    resolution: "1024x1024",
-    generationTime: "16s",
-    isHot: false,
-    isNew: false,
-    createdAt: "2024-09-15",
-  },
-  {
-    id: 7,
-    style: "Neo-Traditional",
-    prompt: "Owl with moon phases and celestial flowers on branch",
-    image: "https://images.unsplash.com/photo-1560185893-a55cbc8c57e8?w=600&h=600&fit=crop&q=80",
-    artist: "Derek Stone",
-    avatar: "DS",
-    likes: 421,
-    views: 2103,
-    placement: "Upper Arm",
-    colorMode: "Full Color",
-    resolution: "2048x2048",
-    generationTime: "20s",
-    isHot: true,
-    isNew: true,
-    createdAt: "2025-01-25",
-  },
-  {
-    id: 8,
-    style: "Dotwork",
-    prompt: "Stippled mountain landscape with geometric sun rays",
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=600&fit=crop&q=80",
-    artist: "Emma Blake",
-    avatar: "EB",
-    likes: 267,
-    views: 1342,
-    placement: "Calf",
-    colorMode: "Black & Grey",
-    resolution: "1024x1024",
-    generationTime: "25s",
-    isHot: false,
-    isNew: false,
-    createdAt: "2024-12-01",
-  },
-  {
-    id: 9,
-    style: "Geometric",
-    prompt: "Crystal formation with sacred geometry overlay and aurora colors",
-    image: "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=600&h=600&fit=crop&q=80",
-    artist: "Ryan Park",
-    avatar: "RP",
-    likes: 356,
-    views: 1876,
-    placement: "Ribcage",
-    colorMode: "Full Color",
-    resolution: "2048x2048",
-    generationTime: "15s",
-    isHot: true,
-    isNew: false,
-    createdAt: "2024-11-30",
-  },
-  {
-    id: 10,
-    style: "Realism",
-    prompt: "Hyper realistic lion portrait with dramatic lighting",
-    image: "https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=600&h=600&fit=crop&q=80",
-    artist: "Maria Lopez",
-    avatar: "ML",
-    likes: 512,
-    views: 3201,
-    placement: "Chest",
-    colorMode: "Full Color",
-    resolution: "2048x2048",
-    generationTime: "28s",
-    isHot: true,
-    isNew: true,
-    createdAt: "2025-01-28",
-  },
-  {
-    id: 11,
-    style: "Tribal",
-    prompt: "Polynesian tribal sleeve pattern with ocean wave motifs",
-    image: "https://images.unsplash.com/photo-1564466809058-bf4114d55352?w=600&h=600&fit=crop&q=80",
-    artist: "Kai Mahalo",
-    avatar: "KM",
-    likes: 298,
-    views: 1567,
-    placement: "Full Sleeve",
-    colorMode: "Black & Grey",
-    resolution: "2048x2048",
-    generationTime: "19s",
-    isHot: true,
-    isNew: false,
-    createdAt: "2024-10-05",
-  },
-  {
-    id: 12,
-    style: "Minimalist",
-    prompt: "Tiny constellation map with connected stars on wrist",
-    image: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&h=600&fit=crop&q=80",
-    artist: "Nina Patel",
-    avatar: "NP",
-    likes: 445,
-    views: 2345,
-    placement: "Wrist",
-    colorMode: "Black & Grey",
-    resolution: "1024x1024",
-    generationTime: "6s",
-    isHot: true,
-    isNew: true,
-    createdAt: "2025-01-30",
-  },
 ];
 
 export function GalleryContent() {
@@ -258,45 +40,45 @@ export function GalleryContent() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   const filteredItems = useMemo(() => {
-    let items = [...galleryItems];
+    const items = communityGalleryItems.filter((item) => {
+      if (activeCategory !== "All" && item.style !== activeCategory) {
+        return false;
+      }
 
-    if (activeCategory !== "All") {
-      items = items.filter((item) => item.style === activeCategory);
-    }
+      if (!searchQuery.trim()) {
+        return true;
+      }
 
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      items = items.filter(
-        (item) =>
-          item.prompt.toLowerCase().includes(q) ||
-          item.style.toLowerCase().includes(q) ||
-          item.artist.toLowerCase().includes(q)
+      const query = searchQuery.toLowerCase();
+      return (
+        item.prompt.toLowerCase().includes(query) ||
+        item.style.toLowerCase().includes(query) ||
+        item.artist.toLowerCase().includes(query)
       );
-    }
+    });
 
     switch (sortBy) {
-      case "popular":
-        items.sort((a, b) => b.views - a.views);
-        break;
       case "liked":
-        items.sort((a, b) => b.likes - a.likes);
-        break;
+        return [...items].sort((a, b) => b.likes - a.likes);
       case "newest":
-        items.sort(
+        return [...items].sort(
           (a, b) =>
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
-        break;
+      case "popular":
+      default:
+        return [...items].sort((a, b) => b.views - a.views);
     }
-
-    return items;
   }, [activeCategory, searchQuery, sortBy]);
 
   const toggleLike = (id: number) => {
     setLikedItems((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   };
@@ -304,7 +86,6 @@ export function GalleryContent() {
   return (
     <main className="min-h-screen bg-black pt-24 pb-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="mb-10">
           <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Community{" "}
@@ -312,30 +93,29 @@ export function GalleryContent() {
               Gallery
             </span>
           </h1>
-          <p className="mt-3 text-lg text-white/60 max-w-2xl">
-            Browse thousands of AI-generated tattoo designs. Get inspired, save
-            your favorites, and create your own masterpiece.
+          <p className="mt-3 max-w-2xl text-lg text-white/60">
+            Browse tattoo flash created by our community. Explore styles, study
+            the linework, and try the design on your own photo.
           </p>
         </div>
 
-        {/* Search & Filter Bar */}
-        <div className="flex flex-col lg:flex-row gap-4 mb-8">
+        <div className="mb-8 flex flex-col gap-4 lg:flex-row">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
             <Input
               placeholder="Search designs, styles, artists..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/40"
+              className="border-white/10 bg-white/5 pl-10 text-white placeholder:text-white/40"
             />
           </div>
           <div className="flex gap-2">
-            <div className="flex items-center gap-1 px-3 rounded-md bg-white/5 border border-white/10 text-white/60 text-sm">
+            <div className="flex items-center gap-1 rounded-md border border-white/10 bg-white/5 px-3 text-sm text-white/60">
               <SlidersHorizontal className="h-4 w-4" />
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="bg-transparent border-none outline-none text-sm text-white/60 cursor-pointer"
+                className="cursor-pointer border-none bg-transparent text-sm text-white/60 outline-none"
               >
                 {sortOptions.map((opt) => (
                   <option key={opt.value} value={opt.value} className="bg-black">
@@ -344,7 +124,7 @@ export function GalleryContent() {
                 ))}
               </select>
             </div>
-            <div className="flex rounded-md border border-white/10 overflow-hidden">
+            <div className="flex overflow-hidden rounded-md border border-white/10">
               <button
                 onClick={() => setViewMode("grid")}
                 className={cn(
@@ -371,31 +151,28 @@ export function GalleryContent() {
           </div>
         </div>
 
-        {/* Category Pills */}
-        <div className="flex gap-2 overflow-x-auto pb-4 mb-8 scrollbar-hide">
-          {categories.map((cat) => (
+        <div className="mb-8 flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
+          {communityGalleryCategories.map((category) => (
             <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
+              key={category}
+              onClick={() => setActiveCategory(category)}
               className={cn(
-                "px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all",
-                activeCategory === cat
+                "whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all",
+                activeCategory === category
                   ? "bg-brand-500 text-white"
                   : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
               )}
             >
-              {cat}
+              {category}
             </button>
           ))}
         </div>
 
-        {/* Results Count */}
-        <p className="text-sm text-white/40 mb-6">
+        <p className="mb-6 text-sm text-white/40">
           Showing {filteredItems.length} design
           {filteredItems.length !== 1 ? "s" : ""}
         </p>
 
-        {/* Gallery Grid */}
         <div
           className={cn(
             "grid gap-4",
@@ -408,47 +185,49 @@ export function GalleryContent() {
             <Card
               key={item.id}
               className={cn(
-                "group overflow-hidden border-white/10 bg-white/5 cursor-pointer transition-all hover:border-brand-500/30",
+                "group cursor-pointer overflow-hidden border-white/10 bg-white/5 transition-all hover:border-brand-500/30",
                 viewMode === "list" && "flex flex-row"
               )}
             >
-              {/* Image */}
               <div
                 className={cn(
                   "relative overflow-hidden",
-                  viewMode === "grid" ? "aspect-square" : "w-48 shrink-0"
+                  viewMode === "grid" ? "aspect-[4/5]" : "w-52 shrink-0"
                 )}
               >
-                <Image
-                  src={item.image}
-                  alt={`${item.style} tattoo - ${item.prompt}`}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                />
-                {/* Top Badges */}
-                <div className="absolute top-3 left-3 flex gap-2">
-                  <span className="px-2 py-1 rounded-md bg-black/60 backdrop-blur-sm text-xs font-medium text-white/90">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#42362c,transparent_56%),linear-gradient(160deg,#f6efdf_0%,#eadcc3_52%,#f8f3e8_100%)] opacity-95 transition-transform duration-500 group-hover:scale-[1.02]" />
+                <div className="absolute inset-3 rounded-[28px] border border-black/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.68),rgba(255,255,255,0.12))] shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_18px_30px_rgba(0,0,0,0.12)]" />
+                <div className="absolute inset-0 flex items-center justify-center p-8 sm:p-10">
+                  <img
+                    src={item.image}
+                    alt={`${item.style} tattoo - ${item.prompt}`}
+                    className="h-full w-full object-contain drop-shadow-[0_16px_26px_rgba(0,0,0,0.18)] transition-transform duration-500 group-hover:scale-105"
+                  />
+                </div>
+
+                <div className="absolute left-3 top-3 flex gap-2">
+                  <span className="rounded-md bg-black/60 px-2 py-1 text-xs font-medium text-white/90 backdrop-blur-sm">
                     {item.style}
                   </span>
                   {item.isHot && (
-                    <Badge className="bg-red-500/80 text-white border-0 text-xs">
-                      <Zap className="h-3 w-3 mr-1" />
+                    <Badge className="border-0 bg-red-500/80 text-xs text-white">
+                      <Zap className="mr-1 h-3 w-3" />
                       Hot
                     </Badge>
                   )}
                   {item.isNew && (
-                    <Badge className="bg-brand-500/80 text-white border-0 text-xs">
+                    <Badge className="border-0 bg-brand-500/80 text-xs text-white">
                       New
                     </Badge>
                   )}
                 </div>
+
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleLike(item.id);
                   }}
-                  className="absolute top-3 right-3 p-2 rounded-full bg-black/40 backdrop-blur-sm transition-colors hover:bg-black/60"
+                  className="absolute right-3 top-3 rounded-full bg-black/40 p-2 backdrop-blur-sm transition-colors hover:bg-black/60"
                 >
                   <Heart
                     className={cn(
@@ -459,16 +238,17 @@ export function GalleryContent() {
                     )}
                   />
                 </button>
-                {/* Bottom Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+
+                <div className="absolute bottom-3 left-3 rounded-full border border-black/10 bg-black/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-black/70 backdrop-blur-sm">
+                  Tattoo Flash
+                </div>
               </div>
 
-              {/* Content */}
-              <div className="p-4 flex-1">
-                <p className="text-sm font-medium text-white line-clamp-1 mb-2">
+              <div className="flex-1 p-4">
+                <p className="mb-2 line-clamp-2 text-sm font-medium text-white">
                   {item.prompt}
                 </p>
-                <div className="flex flex-wrap gap-2 mb-3">
+                <div className="mb-3 flex flex-wrap gap-2">
                   <span className="flex items-center gap-1 text-xs text-white/50">
                     <MapPin className="h-3 w-3" />
                     {item.placement}
@@ -484,7 +264,7 @@ export function GalleryContent() {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="h-6 w-6 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-[10px] font-bold text-white">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-brand-700 text-[10px] font-bold text-white">
                       {item.avatar}
                     </div>
                     <span className="text-xs text-white/60">{item.artist}</span>
@@ -505,12 +285,11 @@ export function GalleryContent() {
           ))}
         </div>
 
-        {/* Empty State */}
         {filteredItems.length === 0 && (
-          <div className="text-center py-20">
-            <Sparkles className="h-12 w-12 text-white/20 mx-auto mb-4" />
-            <p className="text-white/60 text-lg">No designs found</p>
-            <p className="text-white/40 text-sm mt-1">
+          <div className="py-20 text-center">
+            <Sparkles className="mx-auto mb-4 h-12 w-12 text-white/20" />
+            <p className="text-lg text-white/60">No designs found</p>
+            <p className="mt-1 text-sm text-white/40">
               Try adjusting your search or filters
             </p>
             <Button
@@ -526,15 +305,14 @@ export function GalleryContent() {
           </div>
         )}
 
-        {/* CTA */}
         <div className="mt-16 text-center">
           <div className="rounded-2xl border border-white/10 bg-white/5 p-8 sm:p-12">
-            <h2 className="text-2xl font-bold text-white mb-3">
+            <h2 className="mb-3 text-2xl font-bold text-white">
               Create Your Own Design
             </h2>
-            <p className="text-white/60 mb-6 max-w-md mx-auto">
-              Can not find what you are looking for? Use our AI generator to
-              create a unique tattoo design just for you.
+            <p className="mx-auto mb-6 max-w-md text-white/60">
+              Want something more personal? Use our AI generator to spin up a
+              fresh tattoo concept in seconds.
             </p>
             <Link href="/dashboard/generate">
               <Button size="lg" className="gap-2">
