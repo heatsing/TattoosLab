@@ -24,6 +24,8 @@ interface UseSubscriptionReturn {
     creditsTotal: number;
     generationsThisMonth: number;
     tryOnProjects: number;
+    generationMode: "CREDITS" | "UNLIMITED";
+    remainingCredits: number;
   } | null;
 }
 

@@ -122,13 +122,17 @@ export function ErrorState({ error, onRetry, onClear }: ErrorStateProps) {
 interface SuccessStateProps {
   count: number;
   creditsUsed: number;
+  billingMode?: "CREDITS" | "UNLIMITED";
   remainingCredits?: number;
+  remainingUsage?: number | null;
 }
 
 export function SuccessState({
   count,
   creditsUsed,
+  billingMode = "CREDITS",
   remainingCredits,
+  remainingUsage,
 }: SuccessStateProps) {
   return (
     <div className="flex items-center gap-3 p-4 rounded-xl bg-green-500/10 border border-green-500/30">
@@ -140,8 +144,15 @@ export function SuccessState({
           Generated {count} design{count > 1 ? "s" : ""}
         </p>
         <p className="text-sm text-white/60">
-          Used {creditsUsed} credit{creditsUsed > 1 ? "s" : ""}
-          {remainingCredits !== undefined && ` - ${remainingCredits} remaining`}
+          {billingMode === "UNLIMITED"
+            ? `Counted ${count} fair-use generation${count > 1 ? "s" : ""}`
+            : `Used ${creditsUsed} credit${creditsUsed > 1 ? "s" : ""}`}
+          {billingMode === "UNLIMITED" && remainingUsage !== null && remainingUsage !== undefined
+            ? ` - ${remainingUsage} left this cycle`
+            : ""}
+          {billingMode !== "UNLIMITED" && remainingCredits !== undefined
+            ? ` - ${remainingCredits} remaining`
+            : ""}
         </p>
       </div>
     </div>

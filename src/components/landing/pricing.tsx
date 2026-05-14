@@ -23,33 +23,33 @@ const plans = [
   },
   {
     name: "Pro",
-    price: "$9.99",
+    price: "$15",
     period: "/month",
     description: "For serious tattoo seekers",
-    credits: 50,
+    credits: 0,
     features: [
-      "50 AI generations/month",
-      "4K resolution downloads",
-      "All 50+ styles",
+      "Unlimited generations (fair use)",
+      "HD downloads",
+      "Full style library",
       "Body preview feature",
-      "Priority generation",
+      "Saved history",
     ],
     cta: "Start Pro Trial",
     popular: true,
   },
   {
     name: "Studio",
-    price: "$29.99",
+    price: "$39",
     period: "/month",
     description: "For tattoo artists & studios",
-    credits: 200,
+    credits: 0,
     features: [
-      "200 AI generations/month",
-      "4K + vector exports",
-      "All styles + custom training",
-      "Client management",
-      "White-label options",
-      "API access",
+      "Unlimited generations (fair use)",
+      "Commercial license",
+      "Priority generation",
+      "Bulk generation tools",
+      "Tattoo try-on",
+      "Saved history",
     ],
     cta: "Get Studio",
     popular: false,
@@ -109,7 +109,7 @@ export function Pricing() {
                   )}
                 </div>
                 <p className="mt-2 text-sm text-brand-400">
-                  {plan.credits} credits/month
+                  {plan.credits > 0 ? `${plan.credits} credits/month` : "Credit packs available"}
                 </p>
               </CardHeader>
               <CardContent>

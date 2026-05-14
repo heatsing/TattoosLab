@@ -1,8 +1,11 @@
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { db as prisma } from "@/lib/db";
+import {
+  assertFeatureAccess,
+  BillingAccessError,
+} from "@/lib/credits/usage";
 import {
   createTryOnProjectSchema,
   updateTryOnProjectSchema,
@@ -12,6 +15,10 @@ import {
   TattooSource,
   TryOnStatus,
 } from "@/lib/validations/tryon";
+import {
+  AuthSessionError,
+  requireDatabaseUser,
+} from "@/lib/auth/ensure-user";
 
 export interface TryOnProjectSummary {
   id: string;
@@ -69,13 +76,8 @@ export async function createTryOnProject(
   input: CreateTryOnProjectInput
 ): Promise<TryOnActionResult<{ id: string }>> {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return {
-        success: false,
-        error: { code: "UNAUTHORIZED", message: "You must be signed in" },
-      };
-    }
+    const user = await requireDatabaseUser();
+    await assertFeatureAccess(user.id, "tryOn");
 
     const validation = createTryOnProjectSchema.safeParse(input);
     if (!validation.success) {
@@ -86,7 +88,7 @@ export async function createTryOnProject(
     }
 
     const bodyPhoto = await prisma.userUpload.findFirst({
-      where: { id: input.bodyPhotoId, userId },
+      where: { id: input.bodyPhotoId, userId: user.id },
     });
 
     if (!bodyPhoto) {
@@ -98,7 +100,7 @@ export async function createTryOnProject(
 
     const project = await prisma.tryOnProject.create({
       data: {
-        userId,
+        userId: user.id,
         name: input.name || `Project ${new Date().toLocaleDateString()}`,
         description: input.description,
         bodyPhotoId: input.bodyPhotoId,
@@ -125,6 +127,13 @@ export async function createTryOnProject(
     };
   } catch (error) {
     console.error("Create try-on project error:", error);
+    if (error instanceof AuthSessionError || error instanceof BillingAccessError) {
+      return {
+        success: false,
+        error: { code: error.code, message: error.message },
+      };
+    }
+
     return {
       success: false,
       error: { code: "INTERNAL_ERROR", message: "Failed to create project" },
@@ -136,13 +145,8 @@ export async function updateTryOnProject(
   input: UpdateTryOnProjectInput
 ): Promise<TryOnActionResult> {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return {
-        success: false,
-        error: { code: "UNAUTHORIZED", message: "You must be signed in" },
-      };
-    }
+    const user = await requireDatabaseUser();
+    await assertFeatureAccess(user.id, "tryOn");
 
     const validation = updateTryOnProjectSchema.safeParse(input);
     if (!validation.success) {
@@ -153,7 +157,7 @@ export async function updateTryOnProject(
     }
 
     const existing = await prisma.tryOnProject.findFirst({
-      where: { id: input.id, userId },
+      where: { id: input.id, userId: user.id },
     });
 
     if (!existing) {
@@ -191,6 +195,13 @@ export async function updateTryOnProject(
     return { success: true };
   } catch (error) {
     console.error("Update try-on project error:", error);
+    if (error instanceof AuthSessionError || error instanceof BillingAccessError) {
+      return {
+        success: false,
+        error: { code: error.code, message: error.message },
+      };
+    }
+
     return {
       success: false,
       error: { code: "INTERNAL_ERROR", message: "Failed to update project" },
@@ -202,16 +213,11 @@ export async function deleteTryOnProject(
   projectId: string
 ): Promise<TryOnActionResult> {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return {
-        success: false,
-        error: { code: "UNAUTHORIZED", message: "You must be signed in" },
-      };
-    }
+    const user = await requireDatabaseUser();
+    await assertFeatureAccess(user.id, "tryOn");
 
     const existing = await prisma.tryOnProject.findFirst({
-      where: { id: projectId, userId },
+      where: { id: projectId, userId: user.id },
     });
 
     if (!existing) {
@@ -230,6 +236,13 @@ export async function deleteTryOnProject(
     return { success: true };
   } catch (error) {
     console.error("Delete try-on project error:", error);
+    if (error instanceof AuthSessionError || error instanceof BillingAccessError) {
+      return {
+        success: false,
+        error: { code: error.code, message: error.message },
+      };
+    }
+
     return {
       success: false,
       error: { code: "INTERNAL_ERROR", message: "Failed to delete project" },
@@ -241,16 +254,11 @@ export async function getTryOnProjects(): Promise<
   TryOnActionResult<TryOnProjectSummary[]>
 > {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return {
-        success: false,
-        error: { code: "UNAUTHORIZED", message: "You must be signed in" },
-      };
-    }
+    const user = await requireDatabaseUser();
+    await assertFeatureAccess(user.id, "tryOn");
 
     const projects = await prisma.tryOnProject.findMany({
-      where: { userId },
+      where: { userId: user.id },
       orderBy: { updatedAt: "desc" },
       select: {
         id: true,
@@ -268,6 +276,13 @@ export async function getTryOnProjects(): Promise<
     return { success: true, data: projects as TryOnProjectSummary[] };
   } catch (error) {
     console.error("Get try-on projects error:", error);
+    if (error instanceof AuthSessionError || error instanceof BillingAccessError) {
+      return {
+        success: false,
+        error: { code: error.code, message: error.message },
+      };
+    }
+
     return {
       success: false,
       error: { code: "INTERNAL_ERROR", message: "Failed to fetch projects" },
@@ -279,16 +294,11 @@ export async function getTryOnProject(
   projectId: string
 ): Promise<TryOnActionResult<TryOnProjectDetail>> {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return {
-        success: false,
-        error: { code: "UNAUTHORIZED", message: "You must be signed in" },
-      };
-    }
+    const user = await requireDatabaseUser();
+    await assertFeatureAccess(user.id, "tryOn");
 
     const project = await prisma.tryOnProject.findFirst({
-      where: { id: projectId, userId },
+      where: { id: projectId, userId: user.id },
     });
 
     if (!project) {
@@ -326,6 +336,13 @@ export async function getTryOnProject(
     };
   } catch (error) {
     console.error("Get try-on project error:", error);
+    if (error instanceof AuthSessionError || error instanceof BillingAccessError) {
+      return {
+        success: false,
+        error: { code: error.code, message: error.message },
+      };
+    }
+
     return {
       success: false,
       error: { code: "INTERNAL_ERROR", message: "Failed to fetch project" },
@@ -337,17 +354,12 @@ export async function getGeneratedTattooOptions(): Promise<
   TryOnActionResult<GeneratedTattooOption[]>
 > {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return {
-        success: false,
-        error: { code: "UNAUTHORIZED", message: "You must be signed in" },
-      };
-    }
+    const user = await requireDatabaseUser();
+    await assertFeatureAccess(user.id, "tryOn");
 
     const generations = await prisma.tattooGeneration.findMany({
       where: {
-        userId,
+        userId: user.id,
         status: "COMPLETED",
       },
       orderBy: { createdAt: "desc" },
@@ -389,6 +401,13 @@ export async function getGeneratedTattooOptions(): Promise<
     return { success: true, data };
   } catch (error) {
     console.error("Get generated tattoo options error:", error);
+    if (error instanceof AuthSessionError || error instanceof BillingAccessError) {
+      return {
+        success: false,
+        error: { code: error.code, message: error.message },
+      };
+    }
+
     return {
       success: false,
       error: {

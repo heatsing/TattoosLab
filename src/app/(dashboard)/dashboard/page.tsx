@@ -70,7 +70,9 @@ export default function DashboardPage() {
 
   const usageStats = overview?.usageStats ?? {
     creditsUsed: 0,
-    creditsTotal: 5,
+    creditsTotal: 3,
+    generationMode: "CREDITS" as const,
+    remainingCredits: 0,
     generationsThisMonth: 0,
     designsSaved: 0,
     favoritesCount: 0,
@@ -81,6 +83,10 @@ export default function DashboardPage() {
   const currentPlan = getPlanById(overview?.currentTier ?? "FREE");
   const highlightedFeatures =
     currentPlan?.features.filter((feature) => feature.included).slice(0, 5) ?? [];
+  const usageLabel =
+    usageStats.generationMode === "UNLIMITED"
+      ? "fair-use generations used"
+      : "credits used";
 
   return (
     <div className="flex min-h-screen flex-col bg-black">
@@ -125,7 +131,7 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2 text-white">
                     <Zap className="h-5 w-5 text-brand-400" />
-                    Credit Usage
+                    Usage
                   </CardTitle>
                   <Badge variant="outline" className="border-white/10 text-white/60">
                     {currentPlan?.name ?? "Free"} Plan
@@ -142,7 +148,8 @@ export default function DashboardPage() {
                     <div>
                       <div className="mb-2 flex justify-between">
                         <span className="text-sm text-white/60">
-                          {usageStats.creditsUsed} of {usageStats.creditsTotal} credits used
+                          {usageStats.creditsUsed} of {usageStats.creditsTotal}{" "}
+                          {usageLabel}
                         </span>
                         <span className="text-sm text-white/60">
                           {Math.round(creditPercent)}%
@@ -158,9 +165,17 @@ export default function DashboardPage() {
                         label="Generations"
                       />
                       <DashboardStat
-                        icon={Image}
-                        value={usageStats.designsSaved}
-                        label="Saved Designs"
+                        icon={usageStats.generationMode === "UNLIMITED" ? Zap : Image}
+                        value={
+                          usageStats.generationMode === "UNLIMITED"
+                            ? usageStats.remainingCredits
+                            : usageStats.designsSaved
+                        }
+                        label={
+                          usageStats.generationMode === "UNLIMITED"
+                            ? "Wallet Credits"
+                            : "Saved Designs"
+                        }
                       />
                       <DashboardStat
                         icon={Heart}

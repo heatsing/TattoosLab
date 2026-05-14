@@ -10,6 +10,7 @@
 # next.js
 /.next/
 /out/
+/backend/dist/
 
 # production
 /build
@@ -37,6 +38,3 @@ next-env.d.ts
 # IDE
 .vscode/
 .idea/
-
-# Prisma
-/prisma/migrations/

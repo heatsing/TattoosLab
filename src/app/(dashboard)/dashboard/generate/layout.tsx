@@ -5,11 +5,11 @@ import { Footer } from "@/components/landing/footer";
 export const metadata: Metadata = {
   title: "AI Tattoo Generator | Tattoos Lab",
   description:
-    "Generate unique tattoo designs with AI. Choose from 50+ styles, body placements, and color modes. Create your perfect tattoo in seconds.",
+    "Generate tattoo concepts with AI, explore different styles, and refine the direction before you commit.",
   openGraph: {
     title: "AI Tattoo Generator | Tattoos Lab",
     description:
-      "Generate unique tattoo designs with AI. 50+ styles, body placements, and color modes.",
+      "Generate tattoo concepts with AI and refine the direction before you commit.",
     images: [
       {
         url: "/api/og?title=AI+Tattoo+Generator&subtitle=50%2B+styles+%C2%B7+Unlimited+creativity&icon=%F0%9F%8E%A8&accent=blue",

@@ -1,19 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { db as prisma } from "@/lib/db";
 import { uploadImage } from "@/lib/cloudinary";
+import {
+  assertFeatureAccess,
+  BillingAccessError,
+} from "@/lib/credits/usage";
+import {
+  AuthSessionError,
+  requireDatabaseUser,
+} from "@/lib/auth/ensure-user";
 
 const ALLOWED_UPLOAD_TYPES = new Set(["BODY_PHOTO", "REFERENCE"]);
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json(
-        { error: "Unauthorized", code: "UNAUTHORIZED" },
-        { status: 401 }
-      );
-    }
+    const user = await requireDatabaseUser();
 
     const formData = await req.formData();
     const file = formData.get("file");
@@ -34,6 +35,9 @@ export async function POST(req: NextRequest) {
     }
 
     const normalizedType = uploadType === "BODY_PHOTO" ? "BODY_PHOTO" : "REFERENCE";
+    if (normalizedType === "BODY_PHOTO") {
+      await assertFeatureAccess(user.id, "tryOn");
+    }
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
@@ -42,12 +46,12 @@ export async function POST(req: NextRequest) {
     const uploaded = await uploadImage(dataUri, {
       folder:
         normalizedType === "BODY_PHOTO" ? "body-photos" : "reference-images",
-      publicId: `${userId}_${Date.now()}`,
+      publicId: `${user.id}_${Date.now()}`,
     });
 
     const savedUpload = await prisma.userUpload.create({
       data: {
-        userId,
+        userId: user.id,
         url: uploaded.url,
         publicId: uploaded.publicId,
         type: normalizedType,
@@ -71,6 +75,16 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Upload error:", error);
+    if (error instanceof AuthSessionError || error instanceof BillingAccessError) {
+      return NextResponse.json(
+        {
+          error: error.message,
+          code: error.code,
+        },
+        { status: error.status }
+      );
+    }
+
     return NextResponse.json(
       {
         error: "Failed to upload image",

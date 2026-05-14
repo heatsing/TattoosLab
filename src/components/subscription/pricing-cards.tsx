@@ -20,16 +20,22 @@ export function PricingCards({ currentTier = "FREE" }: PricingCardsProps) {
   const [isLoading, setIsLoading] = useState<string | null>(null);
   const activeTier = subscription?.tier ?? currentTier;
 
-  const handleSubscribe = async (planId: string) => {
+  const handleSubscribe = async (
+    planId: string,
+    provider: "stripe" | "paypal"
+  ) => {
     if (planId === "FREE") return;
 
-    setIsLoading(planId);
+    setIsLoading(`${planId}:${provider}`);
     try {
-      const response = await fetch("/api/stripe/checkout", {
+      const response = await fetch(
+        provider === "paypal" ? "/api/paypal/checkout" : "/api/stripe/checkout",
+        {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ planId, billingCycle }),
-      });
+        }
+      );
 
       const data = await response.json();
 
@@ -87,8 +93,10 @@ export function PricingCards({ currentTier = "FREE" }: PricingCardsProps) {
             plan={plan}
             billingCycle={billingCycle}
             isCurrentPlan={activeTier === plan.id}
-            isLoading={isLoading === plan.id}
-            onSubscribe={() => handleSubscribe(plan.id)}
+            isStripeLoading={isLoading === `${plan.id}:stripe`}
+            isPayPalLoading={isLoading === `${plan.id}:paypal`}
+            onStripeSubscribe={() => handleSubscribe(plan.id, "stripe")}
+            onPayPalSubscribe={() => handleSubscribe(plan.id, "paypal")}
           />
         ))}
       </div>
@@ -100,16 +108,20 @@ interface PricingCardProps {
   plan: Plan;
   billingCycle: "monthly" | "yearly";
   isCurrentPlan: boolean;
-  isLoading: boolean;
-  onSubscribe: () => void;
+  isStripeLoading: boolean;
+  isPayPalLoading: boolean;
+  onStripeSubscribe: () => void;
+  onPayPalSubscribe: () => void;
 }
 
 function PricingCard({
   plan,
   billingCycle,
   isCurrentPlan,
-  isLoading,
-  onSubscribe,
+  isStripeLoading,
+  isPayPalLoading,
+  onStripeSubscribe,
+  onPayPalSubscribe,
 }: PricingCardProps) {
   const price = billingCycle === "monthly" ? plan.priceMonthly : plan.priceYearly;
   const displayPrice = billingCycle === "monthly" 
@@ -168,25 +180,49 @@ function PricingCard({
           ))}
         </ul>
 
-        <Button
-          onClick={onSubscribe}
-          disabled={isCurrentPlan || isLoading || plan.id === "FREE"}
-          variant={plan.popular ? "default" : "outline"}
-          className="w-full mt-6"
-        >
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : isCurrentPlan ? (
-            "Current Plan"
-          ) : plan.id === "FREE" ? (
-            "Get Started"
-          ) : (
-            <>
-              <Sparkles className="h-4 w-4 mr-2" />
-              Subscribe
-            </>
-          )}
-        </Button>
+        {plan.id === "FREE" ? (
+          <Button
+            disabled
+            variant="outline"
+            className="w-full mt-6"
+          >
+            Get Started
+          </Button>
+        ) : isCurrentPlan ? (
+          <Button disabled variant={plan.popular ? "default" : "outline"} className="w-full mt-6">
+            Current Plan
+          </Button>
+        ) : (
+          <div className="mt-6 grid gap-3">
+            <Button
+              onClick={onStripeSubscribe}
+              disabled={isStripeLoading || isPayPalLoading}
+              variant={plan.popular ? "default" : "outline"}
+              className="w-full"
+            >
+              {isStripeLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Stripe
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={onPayPalSubscribe}
+              disabled={isStripeLoading || isPayPalLoading}
+              variant="secondary"
+              className="w-full bg-[#0070ba] text-white hover:bg-[#005ea6]"
+            >
+              {isPayPalLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "PayPal"
+              )}
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

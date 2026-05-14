@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { useSubscription } from "@/hooks/use-subscription";
 import { UsageBar } from "@/components/subscription/credit-display";
-import { plans, formatPrice } from "@/lib/stripe/plans";
+import { creditPacks, formatPrice, plans } from "@/lib/stripe/plans";
 
 export default function SettingsPage() {
   return (
@@ -27,18 +27,42 @@ function SettingsPageContent() {
   useEffect(() => {
     const success = searchParams.get("success");
     const canceled = searchParams.get("canceled");
+    const provider = searchParams.get("provider");
+    const paypalState = searchParams.get("paypal");
 
     if (success) {
-      toast.success("Subscription updated successfully!");
+      toast.success(
+        provider === "paypal"
+          ? "PayPal checkout completed successfully!"
+          : "Subscription updated successfully!"
+      );
       refresh();
     }
     if (canceled) {
       toast.info("Subscription update canceled.");
     }
+    if (paypalState === "order-failed" || paypalState === "subscription-failed") {
+      toast.error("PayPal approval completed, but we could not finish syncing the purchase.");
+    }
   }, [searchParams, refresh]);
 
   const handleManageBilling = async () => {
     try {
+      if (subscription?.provider === "PAYPAL") {
+        const response = await fetch("/api/paypal/subscription/cancel", {
+          method: "POST",
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to cancel PayPal subscription");
+        }
+
+        toast.success("Your PayPal subscription has been canceled.");
+        await refresh();
+        return;
+      }
+
       const response = await fetch("/api/stripe/portal", {
         method: "POST",
       });
@@ -54,6 +78,31 @@ function SettingsPageContent() {
     }
   };
 
+  const handleCreditPackCheckout = async (
+    provider: "stripe" | "paypal",
+    creditPackId: "CREDIT_PACK_50" | "CREDIT_PACK_120"
+  ) => {
+    try {
+      const response = await fetch(
+        provider === "paypal" ? "/api/paypal/checkout" : "/api/stripe/checkout",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ creditPackId }),
+        }
+      );
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to start checkout");
+      }
+
+      window.location.href = data.url;
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Checkout failed");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -64,6 +113,12 @@ function SettingsPageContent() {
 
   const currentPlan = plans.find((p) => p.id === subscription?.tier) || plans[0];
   const isPaidPlan = subscription?.tier !== "FREE";
+  const usageLabel =
+    usage?.generationMode === "UNLIMITED"
+      ? "Fair-Use Generations This Cycle"
+      : "Credits Used";
+  const billingButtonLabel =
+    subscription?.provider === "PAYPAL" ? "Cancel PayPal Subscription" : "Manage Billing";
 
   return (
     <div className="space-y-8">
@@ -88,6 +143,7 @@ function SettingsPageContent() {
               className="text-sm"
             >
               {currentPlan.name}
+              {subscription?.provider ? ` · ${subscription.provider}` : ""}
             </Badge>
           </div>
         </CardHeader>
@@ -95,17 +151,17 @@ function SettingsPageContent() {
           {/* Plan Info */}
           <div className="grid gap-4 md:grid-cols-2">
             <div className="p-4 rounded-lg bg-white/5">
-              <p className="text-sm text-white/60">Monthly Generations</p>
+              <p className="text-sm text-white/60">Generation Access</p>
               <p className="text-2xl font-bold text-white mt-1">
-                {currentPlan.limits.generationsPerMonth}
+                {currentPlan.limits.generationMode === "UNLIMITED"
+                  ? "Unlimited"
+                  : `${currentPlan.limits.starterCredits} total`}
               </p>
             </div>
             <div className="p-4 rounded-lg bg-white/5">
-              <p className="text-sm text-white/60">Try-On Projects</p>
+              <p className="text-sm text-white/60">Credit Wallet</p>
               <p className="text-2xl font-bold text-white mt-1">
-                {currentPlan.limits.tryOnProjects === -1
-                  ? "Unlimited"
-                  : currentPlan.limits.tryOnProjects}
+                {subscription?.credits ?? 0}
               </p>
             </div>
           </div>
@@ -114,7 +170,7 @@ function SettingsPageContent() {
           {usage && (
             <div className="p-4 rounded-lg bg-white/5">
               <UsageBar
-                label="Credits Used This Month"
+                label={usageLabel}
                 used={usage.creditsUsed}
                 total={usage.creditsTotal}
               />
@@ -126,7 +182,7 @@ function SettingsPageContent() {
             <div className="flex flex-col sm:flex-row gap-3">
               <Button onClick={handleManageBilling} className="gap-2">
                 <CreditCard className="h-4 w-4" />
-                Manage Billing
+                {billingButtonLabel}
               </Button>
               <Button variant="outline" asChild>
                 <a href="/pricing">
@@ -153,6 +209,45 @@ function SettingsPageContent() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-white">Buy Extra Credits</CardTitle>
+          <CardDescription className="text-white/60">
+            Credit packs work as overflow on top of your plan.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2">
+          {creditPacks.map((pack) => (
+            <div key={pack.id} className="rounded-xl bg-white/5 p-4 border border-white/10">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="text-white font-semibold">{pack.name}</p>
+                  <p className="text-sm text-white/60">{pack.description}</p>
+                </div>
+                <Badge variant="outline" className="text-white/80 border-white/10">
+                  {formatPrice(pack.price)}
+                </Badge>
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  className="flex-1"
+                  variant="outline"
+                  onClick={() => handleCreditPackCheckout("stripe", pack.id)}
+                >
+                  Stripe
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={() => handleCreditPackCheckout("paypal", pack.id)}
+                >
+                  PayPal
+                </Button>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
       {/* Features Grid */}
       <Card>
         <CardHeader>
@@ -162,11 +257,11 @@ function SettingsPageContent() {
           <div className="grid gap-4 md:grid-cols-2">
             <FeatureItem
               label="HD Downloads"
-              enabled={!currentPlan.limits.watermark}
+              enabled={currentPlan.limits.hdDownload}
             />
             <FeatureItem
               label="Try-On Feature"
-              enabled={currentPlan.limits.tryOnProjects > 0}
+              enabled={currentPlan.limits.tryOnUnlocked}
             />
             <FeatureItem
               label="Priority Generation"
@@ -177,8 +272,12 @@ function SettingsPageContent() {
               enabled={currentPlan.limits.commercialUse}
             />
             <FeatureItem
-              label="API Access"
-              enabled={currentPlan.limits.apiAccess}
+              label="Saved History"
+              enabled={currentPlan.limits.saveHistory}
+            />
+            <FeatureItem
+              label="Bulk Tools"
+              enabled={currentPlan.limits.bulkGeneration}
             />
             <FeatureItem
               label="Max Resolution"

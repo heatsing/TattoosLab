@@ -18,15 +18,15 @@ const features = [
   },
   {
     icon: Palette,
-    title: "50+ Art Styles",
+    title: "Curated Style Library",
     description:
-      "Explore geometric, watercolor, traditional, neo-traditional, Japanese, and many more artistic styles.",
+      "Explore geometric, watercolor, traditional, neo-traditional, Japanese, and other tattoo-friendly visual directions.",
   },
   {
     icon: Download,
-    title: "High-Res Downloads",
+    title: "Plan-Based Downloads",
     description:
-      "Download your designs in stunning 4K resolution, perfect for showing to your tattoo artist.",
+      "Free previews stay watermarked, while paid plans unlock clean downloads and higher-resolution delivery.",
   },
   {
     icon: Sparkles,

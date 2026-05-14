@@ -3,13 +3,13 @@ import { Shield, Users, Award, Clock } from "lucide-react";
 const stats = [
   {
     icon: Users,
-    value: "10,000+",
-    label: "Active Users",
+    value: "AI + Try-On",
+    label: "Core Workflow",
   },
   {
     icon: Award,
-    value: "50,000+",
-    label: "Designs Created",
+    value: "Subscription",
+    label: "Billing Ready",
   },
   {
     icon: Shield,

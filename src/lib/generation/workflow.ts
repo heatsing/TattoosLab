@@ -1,15 +1,21 @@
 import { AspectRatio, BodyPlacement } from "@prisma/client";
 import { db as prisma } from "@/lib/db";
 import {
-  createCreditLedgerEntry,
-  getCreditBalance,
+  assertGenerationAllowed,
+  BillingAccessError,
+  finalizeGenerationUsage,
 } from "@/lib/credits/usage";
+import { getGenerationDeliveryUrl, uploadImage } from "@/lib/cloudinary";
 import { generationService } from "@/lib/services/generation.service";
 import {
   GenerateTattooInput,
   TattooStyle as TattooStyleSlug,
   styleLabels,
 } from "@/lib/validations/generation";
+import type {
+  GenerationAllowance,
+  UserBillingState,
+} from "@/lib/credits/usage";
 
 export interface PersistedGenerationResult {
   id: string;
@@ -22,6 +28,8 @@ export interface GenerationWorkflowResult {
   data: PersistedGenerationResult[];
   creditsUsed: number;
   remainingCredits: number;
+  billingMode: "CREDITS" | "UNLIMITED";
+  remainingUsage: number | null;
 }
 
 export class GenerationWorkflowError extends Error {
@@ -45,47 +53,59 @@ export class GenerationWorkflowError extends Error {
 export async function generateAndPersistTattoos(
   userId: string,
   input: GenerateTattooInput,
-  count: number
-): Promise<GenerationWorkflowResult> {
-  const requiredCredits = count;
-  const availableCredits = await getCreditBalance(userId);
-
-  if (availableCredits < requiredCredits) {
-    throw new GenerationWorkflowError(
-      "INSUFFICIENT_CREDITS",
-      `You need ${requiredCredits} credits but only have ${availableCredits}.`,
-      403,
-      {
-        required: requiredCredits,
-        available: availableCredits,
-      }
-    );
+  count: number,
+  requestContext?: {
+    ipAddress?: string | null;
+    userAgent?: string | null;
   }
+): Promise<GenerationWorkflowResult> {
+  let billingState: UserBillingState;
+  let allowance: GenerationAllowance;
 
-  const style = await ensureTattooStyle(input.style);
-  const results =
-    count === 1
-      ? [await generationService.generateTattoo(input, userId)]
-      : await generationService.generateMultiple(input, userId, count);
-
-  return prisma.$transaction(async (tx) => {
-    const currentBalance = await getCreditBalance(userId, tx);
-
-    if (currentBalance < requiredCredits) {
+  try {
+    const result = await assertGenerationAllowed(userId, count);
+    billingState = result.state;
+    allowance = result.allowance;
+  } catch (error) {
+    if (error instanceof BillingAccessError) {
       throw new GenerationWorkflowError(
-        "INSUFFICIENT_CREDITS",
-        `You need ${requiredCredits} credits but only have ${currentBalance}.`,
-        403,
-        {
-          required: requiredCredits,
-          available: currentBalance,
-        }
+        error.code,
+        error.message,
+        error.status,
+        error.details
       );
     }
 
+    throw error;
+  }
+
+  const [style, results] = await Promise.all([
+    ensureTattooStyle(input.style),
+    count === 1
+      ? Promise.resolve([await generationService.generateTattoo(input, userId)])
+      : generationService.generateMultiple(input, userId, count),
+  ]);
+
+  const uploadedResults = await Promise.all(
+    results.map(async (result, index) => {
+      const uploadedAsset = await uploadImage(result.imageUrl, {
+        folder: "generated-tattoos",
+        publicId: `${userId}_${Date.now()}_${index}`,
+        transformation: [],
+      });
+
+      return {
+        result,
+        uploadedAsset,
+      };
+    })
+  );
+
+  return prisma.$transaction(async (tx) => {
     const persistedResults: PersistedGenerationResult[] = [];
 
-    for (const result of results) {
+    for (const item of uploadedResults) {
+      const { result, uploadedAsset } = item;
       const generation = await tx.tattooGeneration.create({
         data: {
           userId,
@@ -100,10 +120,11 @@ export async function generateAndPersistTattoos(
           completedAt: result.createdAt,
           resultImages: {
             create: {
-              url: result.imageUrl,
-              width: result.width,
-              height: result.height,
-              size: 0,
+              url: uploadedAsset.url,
+              publicId: uploadedAsset.publicId,
+              width: uploadedAsset.width,
+              height: uploadedAsset.height,
+              size: uploadedAsset.size,
             },
           },
         },
@@ -118,6 +139,7 @@ export async function generateAndPersistTattoos(
           resultImages: {
             select: {
               url: true,
+              publicId: true,
             },
             take: 1,
             orderBy: { createdAt: "asc" },
@@ -127,29 +149,35 @@ export async function generateAndPersistTattoos(
 
       persistedResults.push({
         id: generation.id,
-        imageUrl: generation.resultImages[0]?.url ?? result.imageUrl,
+        imageUrl:
+          generation.resultImages[0]?.publicId
+            ? getGenerationDeliveryUrl(generation.resultImages[0].publicId, {
+                watermark: billingState.plan.limits.watermark,
+                hd: billingState.plan.limits.hdDownload,
+              })
+            : generation.resultImages[0]?.url ?? uploadedAsset.url,
         prompt: generation.prompt,
         style: generation.style.name,
       });
     }
 
-    const remainingCredits = currentBalance - requiredCredits;
-    await createCreditLedgerEntry(tx, {
-      userId,
-      amount: -requiredCredits,
-      balance: remainingCredits,
-      type: "GENERATION_USE",
+    const remainingCredits = await finalizeGenerationUsage(tx, billingState, allowance, {
+      count,
       description:
         count === 1
           ? `Generated tattoo: ${truncatePrompt(input.prompt)}`
           : `Generated ${count} tattoo variations: ${truncatePrompt(input.prompt)}`,
       generationId: persistedResults.length === 1 ? persistedResults[0].id : undefined,
+      ipAddress: requestContext?.ipAddress,
+      userAgent: requestContext?.userAgent,
     });
 
     return {
       data: persistedResults,
-      creditsUsed: requiredCredits,
+      creditsUsed: allowance.creditsToDeduct,
       remainingCredits,
+      billingMode: allowance.mode,
+      remainingUsage: allowance.remainingUsageAfter,
     };
   });
 }

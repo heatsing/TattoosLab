@@ -1,11 +1,14 @@
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
 import { db as prisma } from "@/lib/db";
 import {
-  getCreditBalance,
-  getTierCreditAllowance,
+  BillingAccessError,
+  getUserBillingState,
 } from "@/lib/credits/usage";
+import {
+  AuthSessionError,
+  ensureDatabaseUser,
+} from "@/lib/auth/ensure-user";
 
 export interface DashboardOverview {
   currentTier: "FREE" | "PRO" | "STUDIO";
@@ -13,6 +16,8 @@ export interface DashboardOverview {
   usageStats: {
     creditsUsed: number;
     creditsTotal: number;
+    generationMode: "CREDITS" | "UNLIMITED";
+    remainingCredits: number;
     generationsThisMonth: number;
     designsSaved: number;
     favoritesCount: number;
@@ -32,16 +37,9 @@ export async function getDashboardOverview(): Promise<{
   error?: { code: string; message: string };
 }> {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return {
-        success: false,
-        error: { code: "UNAUTHORIZED", message: "Not authenticated" },
-      };
-    }
-
+    const appUser = await ensureDatabaseUser();
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: appUser.id },
       include: {
         subscription: true,
         _count: {
@@ -60,49 +58,47 @@ export async function getDashboardOverview(): Promise<{
       };
     }
 
+    const billingState = await getUserBillingState(user.id);
+
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    const [generationsThisMonth, recentDesigns, creditsRemaining] =
-      await Promise.all([
-        prisma.tattooGeneration.count({
-          where: {
-            userId,
-            createdAt: { gte: startOfMonth },
-          },
-        }),
-        prisma.tattooGeneration.findMany({
-          where: { userId },
-          orderBy: { createdAt: "desc" },
-          take: 3,
-          select: {
-            id: true,
-            prompt: true,
-            status: true,
-            createdAt: true,
-            style: {
-              select: {
-                name: true,
-              },
+    const [generationsThisMonth, recentDesigns] = await Promise.all([
+      prisma.tattooGeneration.count({
+        where: {
+          userId: user.id,
+          createdAt: { gte: startOfMonth },
+        },
+      }),
+      prisma.tattooGeneration.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: "desc" },
+        take: 3,
+        select: {
+          id: true,
+          prompt: true,
+          status: true,
+          createdAt: true,
+          style: {
+            select: {
+              name: true,
             },
           },
-        }),
-        getCreditBalance(userId),
-      ]);
-
-    const currentTier = user.subscription?.tier || "FREE";
-    const creditsTotal = getTierCreditAllowance(currentTier);
-    const creditsUsed = Math.max(0, creditsTotal - creditsRemaining);
+        },
+      }),
+    ]);
 
     return {
       success: true,
       data: {
-        currentTier,
+        currentTier: billingState.tier,
         currentPeriodEnd: user.subscription?.currentPeriodEnd.toISOString() || null,
         usageStats: {
-          creditsUsed,
-          creditsTotal,
+          creditsUsed: billingState.usageConsumed,
+          creditsTotal: billingState.usageCap,
+          generationMode: billingState.generationMode,
+          remainingCredits: billingState.creditBalance,
           generationsThisMonth,
           designsSaved: user._count.generations,
           favoritesCount: user._count.favorites,
@@ -118,6 +114,13 @@ export async function getDashboardOverview(): Promise<{
     };
   } catch (error) {
     console.error("Get dashboard overview error:", error);
+    if (error instanceof AuthSessionError || error instanceof BillingAccessError) {
+      return {
+        success: false,
+        error: { code: error.code, message: error.message },
+      };
+    }
+
     return {
       success: false,
       error: { code: "INTERNAL_ERROR", message: "Failed to fetch dashboard" },

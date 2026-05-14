@@ -11,10 +11,16 @@ datasource db {
 // User & Authentication (Clerk-managed)
 // ============================================
 model User {
-  id            String    @id @unique
+  id            String    @id @default(cuid()) @unique
   email         String    @unique
   name          String?
   imageUrl      String?
+  authProvider  AuthProvider @default(CLERK)
+  passwordHash  String?
+  refreshTokenHash String?
+  lastLoginAt   DateTime?
+  stripeCustomerId String? @unique
+  paypalPayerId String?    @unique
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   role          UserRole  @default(USER)
@@ -22,6 +28,8 @@ model User {
   // Relations
   subscription  Subscription?
   creditLedger  CreditLedger[]
+  payments      Payment[]
+  usageLogs     UsageLog[]
   generations   TattooGeneration[]
   uploads       UserUpload[]
   tryOnProjects TryOnProject[]
@@ -35,6 +43,11 @@ enum UserRole {
   ADMIN
 }
 
+enum AuthProvider {
+  CLERK
+  LOCAL
+}
+
 // ============================================
 // Subscription & Billing (Stripe)
 // ============================================
@@ -43,11 +56,19 @@ model Subscription {
   userId               String             @unique
   user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   
+  paymentProvider      PaymentProvider    @default(STRIPE)
+  
   // Stripe fields
-  stripeCustomerId     String             @unique
+  stripeCustomerId     String?            @unique
   stripeSubscriptionId String?            @unique
-  stripePriceId        String
-  stripeProductId      String
+  stripePriceId        String?
+  stripeProductId      String?
+  
+  // PayPal fields
+  paypalSubscriptionId String?            @unique
+  paypalPlanId         String?
+  paypalPayerId        String?
+  billingCycle         BillingCycle       @default(MONTHLY)
   
   // Subscription status
   status               SubscriptionStatus
@@ -64,6 +85,11 @@ model Subscription {
   payments             Payment[]
 
   @@map("subscriptions")
+}
+
+enum BillingCycle {
+  MONTHLY
+  YEARLY
 }
 
 enum SubscriptionStatus {
@@ -85,17 +111,45 @@ enum SubscriptionTier {
 
 model Payment {
   id                String        @id @default(cuid())
-  subscriptionId    String
-  subscription      Subscription  @relation(fields: [subscriptionId], references: [id])
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptionId    String?
+  subscription      Subscription? @relation(fields: [subscriptionId], references: [id])
+  provider          PaymentProvider @default(STRIPE)
   
-  stripePaymentId   String        @unique
+  stripeCheckoutSessionId String? @unique
+  stripePaymentIntentId   String? @unique
+  stripeInvoiceId         String? @unique
+  stripeChargeId          String? @unique
+  paypalOrderId          String? @unique
+  paypalCaptureId        String? @unique
+  paypalSubscriptionId   String?
+  paypalPayerId          String?
   amount            Int           // in cents
   currency          String        @default("usd")
   status            PaymentStatus
+  kind              PaymentKind
+  description       String?
+  creditsAmount     Int           @default(0)
+  receiptUrl        String?
   
   createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
+  creditEntries     CreditLedger[]
+
+  @@index([userId, createdAt])
   @@map("payments")
+}
+
+enum PaymentKind {
+  SUBSCRIPTION
+  CREDIT_PACK
+}
+
+enum PaymentProvider {
+  STRIPE
+  PAYPAL
 }
 
 enum PaymentStatus {
@@ -112,6 +166,8 @@ model CreditLedger {
   id            String              @id @default(cuid())
   userId        String
   user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentId     String?
+  payment       Payment?            @relation(fields: [paymentId], references: [id], onDelete: SetNull)
   
   amount        Int                 // positive = credit, negative = debit
   balance       Int                 // running balance after transaction
@@ -184,6 +240,7 @@ model GenerationImage {
   generation    TattooGeneration @relation(fields: [generationId], references: [id], onDelete: Cascade)
   
   url           String
+  publicId      String?
   width         Int
   height        Int
   size          Int              // in bytes
@@ -362,6 +419,63 @@ model Favorite {
   @@unique([userId, generationId])
   @@index([userId])
   @@map("favorites")
+}
+
+// ============================================
+// Usage & Rate Limiting
+// ============================================
+model UsageLog {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action        UsageAction
+  units         Int         @default(1)
+  success       Boolean     @default(true)
+  generationId  String?
+  ipAddress     String?
+  userAgent     String?
+  metadata      Json?
+  createdAt     DateTime    @default(now())
+
+  @@index([userId, action, createdAt])
+  @@index([ipAddress, action, createdAt])
+  @@map("usage_logs")
+}
+
+enum UsageAction {
+  GENERATION
+  TRY_ON
+  DOWNLOAD_HD
+  CREDIT_PURCHASE
+  SUBSCRIPTION_CHECKOUT
+}
+
+model StripeWebhookEvent {
+  id          String   @id
+  type        String
+  status      StripeWebhookEventStatus @default(PROCESSING)
+  error       String?  @db.Text
+  attempts    Int      @default(1)
+  processedAt DateTime @default(now())
+
+  @@map("stripe_webhook_events")
+}
+
+model PayPalWebhookEvent {
+  id          String   @id
+  type        String
+  status      StripeWebhookEventStatus @default(PROCESSING)
+  error       String?  @db.Text
+  attempts    Int      @default(1)
+  processedAt DateTime @default(now())
+
+  @@map("paypal_webhook_events")
+}
+
+enum StripeWebhookEventStatus {
+  PROCESSING
+  PROCESSED
+  FAILED
 }
 
 // ============================================

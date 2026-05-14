@@ -17,22 +17,22 @@ const faqs = [
   {
     question: "Do I own the designs I create?",
     answer:
-      "Absolutely. All designs you generate are yours to keep, download, and use. You have full commercial rights to use them for your tattoo or any other purpose.",
+      "You can keep and use the designs you generate for personal tattoo planning. Commercial use is only included on the Studio plan.",
   },
   {
     question: "What styles are available?",
     answer:
-      "We offer 50+ tattoo styles including Geometric, Watercolor, Traditional, Neo-Traditional, Japanese, Minimalist, Blackwork, Dotwork, and many more. You can also mix styles for unique results.",
+      "The product supports a curated set of tattoo styles including geometric, watercolor, traditional, Japanese, minimalist, blackwork, dotwork, and more.",
   },
   {
     question: "How many designs can I generate?",
     answer:
-      "Free users get 3 generations to try the service. Pro subscribers get 50 generations per month, and Studio subscribers get 200 generations per month. Additional credits can be purchased anytime.",
+      "Free users get 3 total generations. Pro and Studio plans include unlimited generation access under a fair usage policy, and extra credit packs are available for heavier use.",
   },
   {
     question: "Can I use this as a tattoo artist?",
     answer:
-      "Definitely! Many tattoo artists use our Studio plan to create custom designs for clients, speed up their workflow, and offer visual previews. The Studio plan includes client management features and API access.",
+      "Yes. The Studio plan is designed for artists and shops that need commercial rights, priority processing, and more flexible workflow support.",
   },
 ];
 

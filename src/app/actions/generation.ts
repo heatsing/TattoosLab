@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
+import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import {
   generateTattooSchema,
@@ -10,6 +10,7 @@ import {
   generateAndPersistTattoos,
   GenerationWorkflowError,
 } from "@/lib/generation/workflow";
+import { requireDatabaseUser } from "@/lib/auth/ensure-user";
 
 export interface GenerationActionResult {
   success: boolean;
@@ -26,6 +27,8 @@ export interface GenerationActionResult {
   };
   creditsUsed?: number;
   remainingCredits?: number;
+  billingMode?: "CREDITS" | "UNLIMITED";
+  remainingUsage?: number | null;
 }
 
 export async function generateTattoo(
@@ -46,16 +49,7 @@ async function runGenerationAction(
   count: number
 ): Promise<GenerationActionResult> {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return {
-        success: false,
-        error: {
-          code: "UNAUTHORIZED",
-          message: "You must be signed in to generate tattoos",
-        },
-      };
-    }
+    const user = await requireDatabaseUser();
 
     const validationResult = generateTattooSchema.safeParse(input);
     if (!validationResult.success) {
@@ -70,10 +64,16 @@ async function runGenerationAction(
       };
     }
 
+    const requestHeaders = await headers();
     const result = await generateAndPersistTattoos(
-      userId,
+      user.id,
       validationResult.data,
-      count
+      count,
+      {
+        ipAddress:
+          requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null,
+        userAgent: requestHeaders.get("user-agent"),
+      }
     );
 
     revalidatePath("/dashboard");
@@ -85,6 +85,8 @@ async function runGenerationAction(
       data: result.data,
       creditsUsed: result.creditsUsed,
       remainingCredits: result.remainingCredits,
+      billingMode: result.billingMode,
+      remainingUsage: result.remainingUsage,
     };
   } catch (error) {
     console.error("Generate tattoo action error:", error);

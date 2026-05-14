@@ -1,40 +1,77 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { getStripe } from "@/lib/stripe/config";
+import {
+  AuthSessionError,
+  requireDatabaseUser,
+} from "@/lib/auth/ensure-user";
 import { db as prisma } from "@/lib/db";
 
-export async function POST(req: NextRequest) {
+async function getCustomerId(user: Awaited<ReturnType<typeof requireDatabaseUser>>) {
+  if (user.stripeCustomerId) {
+    return user.stripeCustomerId;
+  }
+
+  const subscription = await prisma.subscription.findUnique({
+    where: { userId: user.id },
+    select: {
+      stripeCustomerId: true,
+    },
+  });
+
+  if (subscription?.stripeCustomerId) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        stripeCustomerId: subscription.stripeCustomerId,
+      },
+    });
+  }
+
+  return subscription?.stripeCustomerId ?? null;
+}
+
+export async function POST(_req: NextRequest) {
   try {
-    const stripe = getStripe();
-    const { userId } = await auth();
-    if (!userId) {
+    const user = await requireDatabaseUser();
+    if (user.subscription?.paymentProvider === "PAYPAL") {
       return NextResponse.json(
-        { error: "Unauthorized", code: "UNAUTHORIZED" },
-        { status: 401 }
+        {
+          error: "PayPal subscriptions are managed directly inside Tattoos Lab settings.",
+          code: "PAYPAL_PORTAL_UNAVAILABLE",
+        },
+        { status: 400 }
       );
     }
 
-    // Get user's subscription
-    const subscription = await prisma.subscription.findUnique({
-      where: { userId },
-    });
+    const customerId = await getCustomerId(user);
 
-    if (!subscription?.stripeCustomerId) {
+    if (!customerId) {
       return NextResponse.json(
-        { error: "No subscription found", code: "NO_SUBSCRIPTION" },
+        { error: "No billing profile found", code: "NO_CUSTOMER" },
         { status: 404 }
       );
     }
 
-    // Create billing portal session
+    const stripe = getStripe();
     const session = await stripe.billingPortal.sessions.create({
-      customer: subscription.stripeCustomerId,
+      customer: customerId,
       return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings`,
     });
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error("Billing portal error:", error);
+
+    if (error instanceof AuthSessionError) {
+      return NextResponse.json(
+        {
+          error: error.message,
+          code: error.code,
+        },
+        { status: error.status }
+      );
+    }
+
     return NextResponse.json(
       {
         error: "Failed to create portal session",

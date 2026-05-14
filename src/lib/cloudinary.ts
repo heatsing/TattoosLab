@@ -92,3 +92,70 @@ export function getOptimizedUrl(
     secure: true,
   });
 }
+
+export function getWatermarkedUrl(
+  publicId: string,
+  options: {
+    width?: number;
+    height?: number;
+    watermarkText?: string;
+  } = {}
+) {
+  const {
+    width = 1024,
+    height = 1024,
+    watermarkText = "Tattoos Lab Preview",
+  } = options;
+
+  return cloudinary.url(publicId, {
+    secure: true,
+    transformation: [
+      {
+        width,
+        height,
+        crop: "limit",
+        quality: "auto:good",
+        fetch_format: "auto",
+      },
+      {
+        overlay: {
+          font_family: "Arial",
+          font_size: 34,
+          font_weight: "bold",
+          text: watermarkText,
+        },
+        color: "#ffffff",
+        opacity: 65,
+        gravity: "south_east",
+        x: 28,
+        y: 28,
+      },
+    ],
+  });
+}
+
+export function getGenerationDeliveryUrl(
+  publicId: string,
+  options: {
+    watermark: boolean;
+    hd: boolean;
+  }
+) {
+  if (options.watermark) {
+    return getWatermarkedUrl(publicId);
+  }
+
+  if (options.hd) {
+    return getOptimizedUrl(publicId, {
+      crop: "limit",
+      quality: "auto:best",
+    });
+  }
+
+  return getOptimizedUrl(publicId, {
+    width: 1024,
+    height: 1024,
+    crop: "limit",
+    quality: "auto:good",
+  });
+}

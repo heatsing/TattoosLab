@@ -62,10 +62,10 @@ const categories = [
 ];
 
 const faqs = [
-  { q: "How do credits work?", a: "Each AI generation costs 1 credit. Free users get 3 credits. Pro users get 50 per month. Studio users get 200 per month." },
-  { q: "Can I download my designs?", a: "Yes! All users can download their generated designs. Pro and Studio users get higher resolution exports (up to 4K)." },
+  { q: "How do credits work?", a: "Each generation variation uses 1 credit when you are on the free plan or using purchased credits. Free users get 3 starter credits. Paid plans run on fair-usage access and can also use extra credit packs." },
+  { q: "Can I download my designs?", a: "Yes. Free-plan downloads stay watermarked, while Pro and Studio unlock clean higher-resolution downloads." },
   { q: "Is my data secure?", a: "Absolutely. We use industry-standard encryption and never share your photos or designs with third parties." },
-  { q: "What styles are supported?", a: "We support 50+ styles including Geometric, Watercolor, Traditional, Japanese, Minimalist, Blackwork, and more." },
+  { q: "What styles are supported?", a: "We support a curated set of tattoo styles including Geometric, Watercolor, Traditional, Japanese, Minimalist, Blackwork, and more." },
 ];
 
 export default function HelpPage() {

@@ -1,17 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { db as prisma } from "@/lib/db";
 import { uploadImage } from "@/lib/cloudinary";
+import {
+  assertFeatureAccess,
+  BillingAccessError,
+} from "@/lib/credits/usage";
+import {
+  AuthSessionError,
+  requireDatabaseUser,
+} from "@/lib/auth/ensure-user";
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json(
-        { error: "Unauthorized", code: "UNAUTHORIZED" },
-        { status: 401 }
-      );
-    }
+    const user = await requireDatabaseUser();
+    await assertFeatureAccess(user.id, "tryOn");
 
     const { projectId, imageData } = await req.json();
 
@@ -23,7 +25,7 @@ export async function POST(req: NextRequest) {
     }
 
     const project = await prisma.tryOnProject.findFirst({
-      where: { id: projectId, userId },
+      where: { id: projectId, userId: user.id },
     });
 
     if (!project) {
@@ -54,6 +56,16 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Export try-on project error:", error);
+    if (error instanceof AuthSessionError || error instanceof BillingAccessError) {
+      return NextResponse.json(
+        {
+          error: error.message,
+          code: error.code,
+        },
+        { status: error.status }
+      );
+    }
+
     return NextResponse.json(
       {
         error: "Failed to export project",

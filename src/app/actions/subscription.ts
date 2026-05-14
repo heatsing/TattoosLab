@@ -1,12 +1,18 @@
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
-import { db as prisma } from "@/lib/db";
 import { SubscriptionTier, SubscriptionStatus } from "@prisma/client";
 import {
-  getCreditBalance,
-  getTierCreditAllowance,
+  BillingAccessError,
+  getFeatureRequiredTier,
+  getUserBillingState,
+  hasFeatureAccess,
 } from "@/lib/credits/usage";
+import {
+  AuthSessionError,
+  ensureDatabaseUser,
+  requireAuthenticatedUserId,
+} from "@/lib/auth/ensure-user";
+import { db as prisma } from "@/lib/db";
 
 export interface SubscriptionData {
   tier: SubscriptionTier;
@@ -14,6 +20,11 @@ export interface SubscriptionData {
   currentPeriodEnd: Date;
   cancelAtPeriodEnd: boolean;
   credits: number;
+  provider: "STRIPE" | "PAYPAL" | null;
+  generationMode: "CREDITS" | "UNLIMITED";
+  fairUsageLimit: number | null;
+  fairUsageUsed: number;
+  fairUsageRemaining: number | null;
 }
 
 export async function getCurrentSubscription(): Promise<{
@@ -22,41 +33,34 @@ export async function getCurrentSubscription(): Promise<{
   error?: { code: string; message: string };
 }> {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return {
-        success: false,
-        error: { code: "UNAUTHORIZED", message: "Not authenticated" },
-      };
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { subscription: true },
-    });
-
-    if (!user) {
-      return {
-        success: false,
-        error: { code: "NOT_FOUND", message: "User not found" },
-      };
-    }
-
+    const user = await ensureDatabaseUser();
+    const billingState = await getUserBillingState(user.id);
     const subscription = user.subscription;
-    const credits = await getCreditBalance(userId);
 
     return {
       success: true,
       data: {
-        tier: subscription?.tier || "FREE",
+        tier: billingState.tier,
         status: subscription?.status || "ACTIVE",
         currentPeriodEnd: subscription?.currentPeriodEnd || new Date(),
         cancelAtPeriodEnd: subscription?.cancelAtPeriodEnd || false,
-        credits,
+        credits: billingState.creditBalance,
+        provider: subscription?.paymentProvider ?? null,
+        generationMode: billingState.generationMode,
+        fairUsageLimit: billingState.plan.limits.fairUsageMonthly,
+        fairUsageUsed: billingState.usageConsumed,
+        fairUsageRemaining: billingState.usageRemaining,
       },
     };
   } catch (error) {
     console.error("Get subscription error:", error);
+    if (error instanceof AuthSessionError || error instanceof BillingAccessError) {
+      return {
+        success: false,
+        error: { code: error.code, message: error.message },
+      };
+    }
+
     return {
       success: false,
       error: { code: "INTERNAL_ERROR", message: "Failed to fetch subscription" },
@@ -72,62 +76,28 @@ export async function checkFeatureAccess(feature: string): Promise<{
   error?: { code: string; message: string };
 }> {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return {
-        success: false,
-        allowed: false,
-        currentTier: "FREE",
-        error: { code: "UNAUTHORIZED", message: "Not authenticated" },
-      };
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { subscription: true },
-    });
-
-    if (!user) {
-      return {
-        success: false,
-        allowed: false,
-        currentTier: "FREE",
-        error: { code: "NOT_FOUND", message: "User not found" },
-      };
-    }
-
-    const currentTier = user.subscription?.tier || "FREE";
-
-    const featureRequirements: Record<string, SubscriptionTier> = {
-      tryOn: "PRO",
-      hdDownload: "PRO",
-      noWatermark: "PRO",
-      priorityGeneration: "STUDIO",
-      commercialUse: "STUDIO",
-      apiAccess: "STUDIO",
-      unlimitedTryOn: "STUDIO",
-    };
-
-    const requiredTier = featureRequirements[feature];
-
-    if (!requiredTier) {
-      return { success: true, allowed: true, currentTier };
-    }
-
-    const tierLevels: Record<SubscriptionTier, number> = {
-      FREE: 0,
-      PRO: 1,
-      STUDIO: 2,
-    };
+    const userId = await requireAuthenticatedUserId();
+    const state = await getUserBillingState(userId);
+    const normalizedFeature = feature as Parameters<typeof hasFeatureAccess>[1];
+    const requiredTier = getFeatureRequiredTier(normalizedFeature);
 
     return {
       success: true,
-      allowed: tierLevels[currentTier] >= tierLevels[requiredTier],
-      currentTier,
+      allowed: requiredTier ? hasFeatureAccess(state, normalizedFeature) : true,
+      currentTier: state.tier,
       requiredTier,
     };
   } catch (error) {
     console.error("Check feature access error:", error);
+    if (error instanceof AuthSessionError || error instanceof BillingAccessError) {
+      return {
+        success: false,
+        allowed: false,
+        currentTier: "FREE",
+        error: { code: error.code, message: error.message },
+      };
+    }
+
     return {
       success: false,
       allowed: false,
@@ -144,64 +114,51 @@ export async function getUsageStats(): Promise<{
     creditsTotal: number;
     generationsThisMonth: number;
     tryOnProjects: number;
+    generationMode: "CREDITS" | "UNLIMITED";
+    remainingCredits: number;
   };
   error?: { code: string; message: string };
 }> {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return {
-        success: false,
-        error: { code: "UNAUTHORIZED", message: "Not authenticated" },
-      };
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        subscription: true,
-        _count: {
-          select: {
-            tryOnProjects: true,
-          },
-        },
-      },
-    });
-
-    if (!user) {
-      return {
-        success: false,
-        error: { code: "NOT_FOUND", message: "User not found" },
-      };
-    }
+    const user = await ensureDatabaseUser();
+    const billingState = await getUserBillingState(user.id);
 
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    const generationsThisMonth = await prisma.tattooGeneration.count({
-      where: {
-        userId,
-        createdAt: { gte: startOfMonth },
-      },
-    });
-
-    const tier = user.subscription?.tier || "FREE";
-    const creditsTotal = getTierCreditAllowance(tier);
-    const creditsRemaining = await getCreditBalance(userId);
-    const creditsUsed = Math.max(0, creditsTotal - creditsRemaining);
+    const [generationsThisMonth, tryOnProjects] = await Promise.all([
+      prisma.tattooGeneration.count({
+        where: {
+          userId: user.id,
+          createdAt: { gte: startOfMonth },
+        },
+      }),
+      prisma.tryOnProject.count({
+        where: { userId: user.id },
+      }),
+    ]);
 
     return {
       success: true,
       data: {
-        creditsUsed,
-        creditsTotal,
+        creditsUsed: billingState.usageConsumed,
+        creditsTotal: billingState.usageCap,
         generationsThisMonth,
-        tryOnProjects: user._count.tryOnProjects,
+        tryOnProjects,
+        generationMode: billingState.generationMode,
+        remainingCredits: billingState.creditBalance,
       },
     };
   } catch (error) {
     console.error("Get usage stats error:", error);
+    if (error instanceof AuthSessionError || error instanceof BillingAccessError) {
+      return {
+        success: false,
+        error: { code: error.code, message: error.message },
+      };
+    }
+
     return {
       success: false,
       error: { code: "INTERNAL_ERROR", message: "Failed to fetch usage stats" },

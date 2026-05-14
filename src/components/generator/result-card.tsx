@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/utils/cn";
+import { toast } from "sonner";
 
 interface ResultCardProps {
   id: string;
@@ -26,6 +27,7 @@ interface ResultCardProps {
 }
 
 export function ResultCard({
+  id,
   imageUrl,
   prompt,
   style,
@@ -40,19 +42,27 @@ export function ResultCard({
 
   const handleDownload = async () => {
     try {
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = url;
-      link.download = `tattoo-${Date.now()}.png`;
+      const response = await fetch(`/api/generations/${id}/download`);
+      const data = await response.json();
+
+      if (!response.ok || !data?.url) {
+        throw new Error(data?.error || "Download failed");
+      }
+
+      link.href = data.url;
+      link.download = data.filename || `tattoo-${Date.now()}.png`;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
       onDownload?.();
     } catch (error) {
       console.error("Download failed:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Download failed"
+      );
     }
   };
 

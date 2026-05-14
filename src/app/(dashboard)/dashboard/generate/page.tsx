@@ -66,7 +66,9 @@ export default function GeneratePage() {
   const [lastResult, setLastResult] = useState<{
     count: number;
     creditsUsed: number;
+    billingMode?: "CREDITS" | "UNLIMITED";
     remainingCredits?: number;
+    remainingUsage?: number | null;
   } | null>(null);
 
   const validateForm = (): boolean => {
@@ -129,7 +131,9 @@ export default function GeneratePage() {
         setLastResult({
           count: result.data.length,
           creditsUsed: result.creditsUsed || 0,
+          billingMode: result.billingMode,
           remainingCredits: result.remainingCredits,
+          remainingUsage: result.remainingUsage,
         });
         toast.success(
           `Generated ${result.data.length} design${
@@ -196,7 +200,11 @@ export default function GeneratePage() {
               <span className="text-sm text-white">
                 {isSubscriptionLoading
                   ? "Loading credits..."
-                  : `${subscription?.credits ?? 0} credits remaining`}
+                  : subscription?.generationMode === "UNLIMITED"
+                    ? `${
+                        subscription.fairUsageRemaining ?? "Unlimited"
+                      } fair-use generations left`
+                    : `${subscription?.credits ?? 0} credits remaining`}
               </span>
             </div>
           </div>
@@ -306,7 +314,9 @@ export default function GeneratePage() {
               <SuccessState
                 count={lastResult.count}
                 creditsUsed={lastResult.creditsUsed}
+                billingMode={lastResult.billingMode}
                 remainingCredits={lastResult.remainingCredits}
+                remainingUsage={lastResult.remainingUsage}
               />
             )}
 

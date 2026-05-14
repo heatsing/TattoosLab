@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { generateTattooSchema } from "@/lib/validations/generation";
 import {
   generateAndPersistTattoos,
   GenerationWorkflowError,
 } from "@/lib/generation/workflow";
+import { requireDatabaseUser, AuthSessionError } from "@/lib/auth/ensure-user";
 
 const requestSchema = z.object({
   input: generateTattooSchema,
@@ -15,13 +15,7 @@ const requestSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json(
-        { error: "Unauthorized", code: "UNAUTHORIZED" },
-        { status: 401 }
-      );
-    }
+    const user = await requireDatabaseUser();
 
     const body = await req.json();
     const validationResult = requestSchema.safeParse(body);
@@ -39,9 +33,13 @@ export async function POST(req: NextRequest) {
 
     const { input, generateMultiple, count } = validationResult.data;
     const result = await generateAndPersistTattoos(
-      userId,
+      user.id,
       input,
-      generateMultiple ? count : 1
+      generateMultiple ? count : 1,
+      {
+        ipAddress: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null,
+        userAgent: req.headers.get("user-agent"),
+      }
     );
 
     return NextResponse.json({
@@ -49,9 +47,18 @@ export async function POST(req: NextRequest) {
       data: result.data,
       creditsUsed: result.creditsUsed,
       remainingCredits: result.remainingCredits,
+      billingMode: result.billingMode,
+      remainingUsage: result.remainingUsage,
     });
   } catch (error) {
     console.error("Generation API error:", error);
+
+    if (error instanceof AuthSessionError) {
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: error.status }
+      );
+    }
 
     if (error instanceof GenerationWorkflowError) {
       return NextResponse.json(
