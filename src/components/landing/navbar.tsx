@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Menu, X, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { SignedIn, SignedOut, UserButton } from "@/components/clerk-compat";
+import { SignedIn, SignedOut, UserButton } from "@/components/auth-compat";
 
 const navLinks = [
   { href: "/#features", label: "Features" },

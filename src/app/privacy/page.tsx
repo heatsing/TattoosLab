@@ -51,7 +51,7 @@ const sections = [
     title: "Third-Party Services",
     content: [
       "We use Stripe for payment processing. Their privacy policy applies to payment data.",
-      "We use Clerk for authentication services.",
+      "We use Auth0 for authentication and account security services.",
       "We use cloud hosting providers (AWS/Vercel) for infrastructure.",
       "We do not sell your personal information to third parties.",
     ],

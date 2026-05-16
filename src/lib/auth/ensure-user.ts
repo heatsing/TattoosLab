@@ -1,11 +1,18 @@
-import { auth, clerkClient, currentUser } from "@clerk/nextjs/server";
 import { Prisma } from "@prisma/client";
 import { db as prisma } from "@/lib/db";
+import { getAuth0Client, isAuth0Configured } from "@/lib/auth0";
 import { ensureStarterCredits } from "@/lib/credits/usage";
 
 type UserWithSubscription = Prisma.UserGetPayload<{
   include: { subscription: true };
 }>;
+
+type AuthIdentity = {
+  userId: string;
+  email: string;
+  name: string | null;
+  imageUrl: string | null;
+};
 
 export class AuthSessionError extends Error {
   status: number;
@@ -22,58 +29,50 @@ export class AuthSessionError extends Error {
   }
 }
 
-function getPrimaryEmail(clerkUser: Awaited<ReturnType<typeof currentUser>>) {
-  if (!clerkUser) {
-    return null;
-  }
-
-  const primaryEmailId = clerkUser.primaryEmailAddressId;
-  const primaryEmail =
-    clerkUser.emailAddresses.find((email) => email.id === primaryEmailId) ??
-    clerkUser.emailAddresses[0];
-
-  return primaryEmail?.emailAddress ?? null;
-}
-
-function getDisplayName(clerkUser: Awaited<ReturnType<typeof currentUser>>) {
-  if (!clerkUser) {
-    return null;
-  }
-
-  const fullName = [clerkUser.firstName, clerkUser.lastName]
+function getDisplayName(user: {
+  name?: string;
+  nickname?: string;
+  given_name?: string;
+  family_name?: string;
+}) {
+  const fullName = [user.given_name, user.family_name]
     .filter(Boolean)
     .join(" ")
     .trim();
 
-  return fullName || clerkUser.username || null;
+  return user.name?.trim() || fullName || user.nickname?.trim() || null;
 }
 
-async function getClerkUser(userId: string) {
-  const activeUser = await currentUser();
-  if (activeUser?.id === userId) {
-    return activeUser;
+async function getAuthenticatedIdentity(): Promise<AuthIdentity> {
+  if (!isAuth0Configured) {
+    throw new AuthSessionError(
+      "AUTH_NOT_CONFIGURED",
+      "Authentication is not configured.",
+      503
+    );
   }
 
-  const client = await clerkClient();
-  return client.users.getUser(userId);
-}
+  const auth0 = getAuth0Client();
 
-export async function requireAuthenticatedUserId(): Promise<string> {
-  const { userId } = await auth();
-  if (!userId) {
+  if (!auth0) {
+    throw new AuthSessionError(
+      "AUTH_NOT_CONFIGURED",
+      "Authentication is not configured.",
+      503
+    );
+  }
+
+  const session = await auth0.getSession();
+  const authUser = session?.user;
+
+  if (!authUser?.sub) {
     throw new AuthSessionError(
       "UNAUTHORIZED",
       "You must be signed in to continue."
     );
   }
 
-  return userId;
-}
-
-export async function ensureDatabaseUser(userId?: string): Promise<UserWithSubscription> {
-  const resolvedUserId = userId ?? (await requireAuthenticatedUserId());
-  const clerkUser = await getClerkUser(resolvedUserId);
-  const email = getPrimaryEmail(clerkUser);
+  const email = authUser.email?.trim().toLowerCase();
 
   if (!email) {
     throw new AuthSessionError(
@@ -83,20 +82,44 @@ export async function ensureDatabaseUser(userId?: string): Promise<UserWithSubsc
     );
   }
 
-  const name = getDisplayName(clerkUser);
+  return {
+    userId: authUser.sub,
+    email,
+    name: getDisplayName(authUser),
+    imageUrl: authUser.picture || null,
+  };
+}
+
+export async function requireAuthenticatedUserId(): Promise<string> {
+  const identity = await getAuthenticatedIdentity();
+  return identity.userId;
+}
+
+export async function ensureDatabaseUser(userId?: string): Promise<UserWithSubscription> {
+  const identity = await getAuthenticatedIdentity();
+  const resolvedUserId = userId ?? identity.userId;
+
+  if (resolvedUserId !== identity.userId) {
+    throw new AuthSessionError(
+      "UNAUTHORIZED",
+      "You can only access your own account."
+    );
+  }
 
   const user = await prisma.user.upsert({
     where: { id: resolvedUserId },
     create: {
       id: resolvedUserId,
-      email,
-      name,
-      imageUrl: clerkUser.imageUrl || null,
+      email: identity.email,
+      name: identity.name,
+      imageUrl: identity.imageUrl,
+      authProvider: "AUTH0",
     },
     update: {
-      email,
-      name,
-      imageUrl: clerkUser.imageUrl || null,
+      email: identity.email,
+      name: identity.name,
+      imageUrl: identity.imageUrl,
+      authProvider: "AUTH0",
     },
     include: {
       subscription: true,

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
+import { Auth0Provider } from "@auth0/nextjs-auth0/client";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -31,9 +31,7 @@ export const metadata: Metadata = {
   },
 };
 
-const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-const hasValidClerkKey =
-  clerkKey && !clerkKey.includes("...") && clerkKey.length > 20;
+const isAuth0Enabled = process.env.NEXT_PUBLIC_AUTH0_ENABLED === "true";
 
 function AppProviders({ children }: { children: React.ReactNode }) {
   const content = (
@@ -52,11 +50,11 @@ function AppProviders({ children }: { children: React.ReactNode }) {
     </html>
   );
 
-  if (!hasValidClerkKey) {
+  if (!isAuth0Enabled) {
     return content;
   }
 
-  return <ClerkProvider>{content}</ClerkProvider>;
+  return <Auth0Provider>{content}</Auth0Provider>;
 }
 
 export default function RootLayout({
