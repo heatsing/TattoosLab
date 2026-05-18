@@ -4,6 +4,7 @@ import { getAuth0Client, isAuth0Configured } from "./src/lib/auth0";
 
 const protectedRoutePatterns = [
   /^\/dashboard(?:\/.*)?$/,
+  /^\/admin(?:\/.*)?$/,
   /^\/api\/generate(?:\/.*)?$/,
   /^\/api\/uploads(?:\/.*)?$/,
   /^\/api\/tryon(?:\/.*)?$/,
@@ -12,6 +13,7 @@ const protectedRoutePatterns = [
   /^\/api\/paypal\/checkout(?:\/.*)?$/,
   /^\/api\/paypal\/subscription\/cancel(?:\/.*)?$/,
   /^\/api\/generations(?:\/.*)?$/,
+  /^\/api\/admin(?:\/.*)?$/,
 ];
 
 function isProtectedRoute(pathname: string) {

@@ -4,7 +4,7 @@ This project already uses `Prisma + PostgreSQL`, so the cleanest Supabase setup 
 
 - Keep Prisma as the ORM and migration tool
 - Use Supabase only as the hosted Postgres backend
-- Keep Clerk, Stripe, PayPal, and Cloudinary as they are
+- Keep Auth0, Stripe, PayPal, and Cloudinary as they are
 
 ## 1. Create the Supabase project
 
@@ -90,13 +90,48 @@ Do not point Preview and Production to the same write database unless that is in
 - The application runtime should use `POSTGRES_PRISMA_URL`
 - Prisma migrate commands should use `POSTGRES_URL_NON_POOLING`
 
-## 7. What this does not replace
+## 7. Optional: Auth0 Wrapper for SQL-side user inspection
+
+If you want to query Auth0 users directly from Supabase SQL, this repo now includes a
+template at [`supabase/sql/auth0-wrapper.sql`](supabase/sql/auth0-wrapper.sql).
+
+What it gives you:
+
+- A read-only foreign table: `auth0.auth0_users`
+- Direct SQL inspection of Auth0 users in Supabase Studio
+- A safe complement to the app-level sync endpoint `/api/admin/users`
+
+Important notes:
+
+- The wrapper is best for operations and inspection, not for app runtime queries
+- Foreign tables do not use RLS the way normal app tables do, so keep the schema private
+- The credential stored in Vault must be rotated if you use a short-lived Auth0 Management token
+
+Basic flow:
+
+1. Open Supabase SQL Editor
+2. Paste the SQL from `supabase/sql/auth0-wrapper.sql`
+3. Replace the placeholders:
+   - `<AUTH0_MANAGEMENT_TOKEN>`
+   - `<AUTH0_USERS_ENDPOINT>`
+   - `<AUTH0_VAULT_KEY_ID>`
+4. Run the script
+5. Query:
+
+```sql
+select user_id, email, name, last_login
+from auth0.auth0_users
+order by last_login desc nulls last
+limit 50;
+```
+
+## 8. What this does not replace
 
 This change only moves the database backend to Supabase Postgres.
 
 It does not replace:
 
-- Clerk authentication
+- Auth0 authentication
 - Cloudinary asset storage
 - Stripe or PayPal billing
 - OpenAI image generation

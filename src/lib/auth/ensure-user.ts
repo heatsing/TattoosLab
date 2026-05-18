@@ -106,6 +106,19 @@ export async function ensureDatabaseUser(userId?: string): Promise<UserWithSubsc
     );
   }
 
+  const existingByEmail = await prisma.user.findUnique({
+    where: { email: identity.email },
+    select: { id: true, authProvider: true },
+  });
+
+  if (existingByEmail && existingByEmail.id !== resolvedUserId) {
+    throw new AuthSessionError(
+      "AUTH_ACCOUNT_CONFLICT",
+      "An account with this email already exists under a different sign-in identity. Contact support to merge the account before continuing.",
+      409
+    );
+  }
+
   const user = await prisma.user.upsert({
     where: { id: resolvedUserId },
     create: {
