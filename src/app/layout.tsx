@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Auth0Provider } from "@auth0/nextjs-auth0/client";
+import { AuthAvailabilityProvider } from "@/components/auth-compat/runtime-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { isAuth0Configured } from "@/lib/auth0";
 import "./globals.css";
 
 const inter = Inter({
@@ -31,7 +33,8 @@ export const metadata: Metadata = {
   },
 };
 
-const isAuth0Enabled = process.env.NEXT_PUBLIC_AUTH0_ENABLED === "true";
+const isAuth0Enabled =
+  process.env.NEXT_PUBLIC_AUTH0_ENABLED === "true" && isAuth0Configured;
 
 function AppProviders({ children }: { children: React.ReactNode }) {
   const content = (
@@ -51,10 +54,14 @@ function AppProviders({ children }: { children: React.ReactNode }) {
   );
 
   if (!isAuth0Enabled) {
-    return content;
+    return <AuthAvailabilityProvider enabled={false}>{content}</AuthAvailabilityProvider>;
   }
 
-  return <Auth0Provider>{content}</Auth0Provider>;
+  return (
+    <AuthAvailabilityProvider enabled>
+      <Auth0Provider>{content}</Auth0Provider>
+    </AuthAvailabilityProvider>
+  );
 }
 
 export default function RootLayout({
