@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { Navbar } from "@/components/landing/navbar";
-import { Footer } from "@/components/landing/footer";
 
 export const metadata: Metadata = {
   title: "Tattoo Try-On | Tattoos Lab",
@@ -34,11 +32,5 @@ export default function TryOnLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="min-h-screen bg-black flex flex-col">
-      <Navbar />
-      <div className="flex-1">{children}</div>
-      <Footer />
-    </div>
-  );
+  return children;
 }

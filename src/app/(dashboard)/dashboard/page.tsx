@@ -7,8 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Navbar } from "@/components/landing/navbar";
-import { Footer } from "@/components/landing/footer";
 import { getDashboardOverview, DashboardOverview } from "@/app/actions/dashboard";
 import { getPlanById } from "@/lib/stripe/plans";
 import {
@@ -89,16 +87,14 @@ export default function DashboardPage() {
       : "credits used";
 
   return (
-    <div className="flex min-h-screen flex-col bg-black">
-      <Navbar />
-      <div className="flex-1 p-6 lg:p-8">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-            <p className="mt-1 text-white/60">
-              Welcome back! Here is what is happening with your account.
-            </p>
-          </div>
+    <div className="flex-1 p-6 lg:p-8">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
+          <p className="mt-1 text-white/60">
+            Welcome back! Here is what is happening with your account.
+          </p>
+        </div>
 
           <div className="mb-8 grid gap-4 sm:grid-cols-3">
             {quickActions.map((action) => (
@@ -240,7 +236,7 @@ export default function DashboardPage() {
             </Card>
           </div>
 
-          <Card className="border-white/10 bg-white/5">
+        <Card className="border-white/10 bg-white/5">
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-white">
@@ -307,10 +303,8 @@ export default function DashboardPage() {
                 </div>
               )}
             </CardContent>
-          </Card>
-        </div>
+        </Card>
       </div>
-      <Footer />
     </div>
   );
 }

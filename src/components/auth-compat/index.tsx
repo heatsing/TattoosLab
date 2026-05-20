@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { LogOut, Settings } from "lucide-react";
+import { useAuthAvailability } from "@/components/auth-compat/runtime-provider";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,9 +14,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const isAuth0Enabled = process.env.NEXT_PUBLIC_AUTH0_ENABLED === "true";
-
 export function SignedIn({ children }: { children?: React.ReactNode }) {
+  const isAuth0Enabled = useAuthAvailability();
   const { user, isLoading } = useUser();
 
   if (!isAuth0Enabled || isLoading || !user) {
@@ -26,6 +26,7 @@ export function SignedIn({ children }: { children?: React.ReactNode }) {
 }
 
 export function SignedOut({ children }: { children?: React.ReactNode }) {
+  const isAuth0Enabled = useAuthAvailability();
   const { user, isLoading } = useUser();
 
   if (!isAuth0Enabled) {
@@ -52,6 +53,7 @@ export function UserButton({
   afterSignOutUrl = "/",
   appearance,
 }: UserButtonProps) {
+  const isAuth0Enabled = useAuthAvailability();
   const { user, isLoading } = useUser();
 
   if (!isAuth0Enabled || isLoading || !user) {

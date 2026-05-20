@@ -1,11 +1,31 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Sparkles, AlertCircle, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/landing/navbar";
 import { Footer } from "@/components/landing/footer";
-import { isAuth0Configured } from "@/lib/auth0";
+import { getAuth0Client, isAuth0Configured } from "@/lib/auth0";
+import { getSafeReturnToPath } from "@/lib/auth/return-to";
 
-export default function SignInPage() {
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{
+    returnTo?: string | string[];
+  }>;
+}) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const returnTo = getSafeReturnToPath(
+    resolvedSearchParams?.returnTo,
+    "/dashboard"
+  );
+  const auth0 = getAuth0Client();
+  const session = auth0 ? await auth0.getSession() : null;
+
+  if (session?.user) {
+    redirect(returnTo);
+  }
+
   return (
     <div className="min-h-screen bg-black flex flex-col">
       <Navbar />
@@ -27,7 +47,11 @@ export default function SignInPage() {
               Continue with Auth0 to access your dashboard, billing, and saved tattoo history.
             </p>
             <Button asChild className="w-full">
-              <a href="/auth/login?returnTo=/dashboard">Continue with Auth0</a>
+              <a
+                href={`/auth/login?returnTo=${encodeURIComponent(returnTo)}`}
+              >
+                Continue with Auth0
+              </a>
             </Button>
             <p className="mt-4 text-xs text-white/40">
               Social login and passwordless options can be configured in your Auth0 tenant.
@@ -40,7 +64,7 @@ export default function SignInPage() {
             </div>
             <h2 className="text-lg font-semibold text-white mb-2">Sign In</h2>
             <p className="text-sm text-white/60 mb-6">
-              Authentication is not configured. Add your Auth0 environment variables to enable sign in.
+              Authentication is not configured. Add your Auth0 web application variables to enable sign in.
             </p>
             <Link href="/dashboard">
               <Button className="w-full">Continue to Dashboard</Button>
