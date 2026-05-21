@@ -17,7 +17,7 @@ const content = {
     alternateLabel: "Create an account",
     alternateHref: "/sign-up",
     disabledDescription:
-      "Authentication is not configured. Add your Auth0 web application variables to enable sign in.",
+      "Account access is temporarily unavailable. Please check back shortly.",
   },
   "sign-up": {
     title: "Create your account",
@@ -27,7 +27,7 @@ const content = {
     alternateLabel: "Sign in",
     alternateHref: "/sign-in",
     disabledDescription:
-      "Authentication is not configured. Add your Auth0 web application variables to enable sign up.",
+      "Account creation is temporarily unavailable. Please check back shortly.",
   },
 } satisfies Record<
   AuthEntryCardProps["mode"],
@@ -84,12 +84,21 @@ export function AuthEntryCard({
                   </a>
                 </Button>
               ) : (
-                <Button disabled className="h-11 w-full justify-between">
-                  <span>{page.action}</span>
-                  <ArrowRight className="h-4 w-4" />
+                <Button asChild variant="secondary" className="h-11 w-full justify-between">
+                  <Link href="/">
+                    <span>Back to homepage</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
                 </Button>
               )}
             </div>
+
+            {!isConfigured && (
+              <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3 text-xs leading-5 text-white/45">
+                Sign-in is required for generation history, credits, billing,
+                and HD downloads.
+              </div>
+            )}
 
             <div className="mt-6 border-t border-white/10 pt-5 text-center text-sm text-white/55">
               {page.alternatePrompt}{" "}
