@@ -5,7 +5,7 @@ import { Upload, Sparkles, Grid3X3 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { communityGalleryItems } from "@/lib/gallery/community-gallery";
+import { communityGalleryItems } from "@/lib/gallery/community-items";
 
 interface TattooSelectorProps {
   value?: string;

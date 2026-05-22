@@ -24,7 +24,7 @@ import { cn } from "@/utils/cn";
 import {
   communityGalleryCategories,
   communityGalleryItems,
-} from "@/lib/gallery/community-gallery";
+} from "@/lib/gallery/community-items";
 
 const sortOptions = [
   { label: "Most Popular", value: "popular" },
