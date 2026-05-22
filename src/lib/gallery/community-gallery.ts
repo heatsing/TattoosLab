@@ -162,6 +162,136 @@ const artworks = {
     <path d="M152 188 C198 146 252 146 282 174 C246 194 222 228 220 270 C218 304 236 332 266 350 C212 356 164 328 146 280 C134 250 136 214 152 188 Z" stroke="${softInk}" stroke-width="9" />
     <path d="M316 186 C354 180 386 198 404 228 C384 226 362 238 348 256 C328 280 326 318 344 350 C304 326 286 284 292 246 C296 220 306 200 316 186 Z" stroke="${gold}" stroke-width="7" />
   `),
+  oldSchoolEagle: makeArtwork(`
+    <path d="M256 126 C232 150 220 180 224 214 C204 190 174 174 126 166 C154 206 178 240 222 258" stroke="${ink}" stroke-width="10" />
+    <path d="M256 126 C280 150 292 180 288 214 C308 190 338 174 386 166 C358 206 334 240 290 258" stroke="${ink}" stroke-width="10" />
+    <path d="M210 270 C224 236 242 220 256 220 C270 220 288 236 302 270 C290 318 274 354 256 378 C238 354 222 318 210 270 Z" stroke="${ink}" stroke-width="10" />
+    <path d="M224 194 C240 170 272 170 288 194" stroke="${gold}" stroke-width="6" />
+    <path d="M236 252 L256 238 L276 252" stroke="${coral}" stroke-width="7" />
+    <path d="M128 344 C178 328 222 334 256 360 C290 334 334 328 384 344" stroke="${coral}" stroke-width="10" />
+    <path d="M146 356 H366" stroke="${gold}" stroke-width="5" />
+    <circle cx="214" cy="278" r="8" fill="${ink}" />
+    <circle cx="298" cy="278" r="8" fill="${ink}" />
+  `),
+  japaneseDragon: makeArtwork(`
+    <path d="M128 334 C170 252 228 264 252 210 C274 162 332 146 386 194 C340 190 314 212 302 248 C284 304 230 316 200 374" stroke="${ink}" stroke-width="12" />
+    <path d="M150 324 C194 284 224 292 250 252 C278 210 318 194 360 210" stroke="${gold}" stroke-width="6" />
+    <path d="M344 168 C366 138 406 146 420 178 C390 166 368 176 350 202" stroke="${ink}" stroke-width="9" />
+    <path d="M386 188 L428 166 M384 202 L432 214" stroke="${coral}" stroke-width="6" />
+    <path d="M176 382 C150 404 122 406 94 392 C126 386 146 366 158 338" stroke="${ink}" stroke-width="8" />
+    <path d="M232 164 C214 138 184 130 158 144 C182 150 202 166 214 192" stroke="${teal}" stroke-width="7" />
+    <circle cx="374" cy="184" r="7" fill="${ink}" />
+  `),
+  cherryBlossomBranch: makeArtwork(`
+    <path d="M104 346 C174 298 242 246 326 150" stroke="${softInk}" stroke-width="10" />
+    <path d="M166 288 C132 250 126 212 148 184" stroke="${softInk}" stroke-width="6" />
+    <path d="M244 228 C286 230 320 252 342 286" stroke="${softInk}" stroke-width="6" />
+    <path d="M146 174 C162 142 196 138 216 164 C196 192 166 198 146 174 Z" stroke="${plum}" stroke-width="6" />
+    <path d="M206 242 C224 210 260 210 278 238 C256 266 226 268 206 242 Z" stroke="${coral}" stroke-width="6" />
+    <path d="M324 286 C342 258 376 262 394 288 C374 314 342 314 324 286 Z" stroke="${plum}" stroke-width="6" />
+    <path d="M300 140 C318 112 352 116 370 140 C350 168 320 168 300 140 Z" stroke="${coral}" stroke-width="6" />
+    <circle cx="188" cy="166" r="7" fill="${gold}" />
+    <circle cx="248" cy="238" r="7" fill="${gold}" />
+    <circle cx="350" cy="286" r="7" fill="${gold}" />
+    <circle cx="336" cy="140" r="7" fill="${gold}" />
+  `),
+  neoRose: makeArtwork(`
+    <path d="M176 224 C176 164 220 126 256 126 C292 126 336 164 336 224 C336 284 298 326 256 326 C214 326 176 284 176 224 Z" stroke="${ink}" stroke-width="10" />
+    <path d="M210 216 C218 172 246 156 256 198 C268 156 300 172 306 216 C286 208 270 216 256 238 C242 216 226 208 210 216 Z" stroke="${coral}" stroke-width="8" />
+    <path d="M198 258 C226 242 244 252 256 286 C268 252 290 242 314 258" stroke="${plum}" stroke-width="7" />
+    <path d="M256 326 C250 360 236 394 212 428" stroke="${softInk}" stroke-width="8" />
+    <path d="M226 374 C190 358 164 366 148 394 C184 400 210 394 226 374 Z" stroke="${teal}" stroke-width="7" />
+    <path d="M248 390 C284 372 316 382 332 412 C294 416 266 410 248 390 Z" stroke="${teal}" stroke-width="7" />
+    <circle cx="256" cy="224" r="16" stroke="${gold}" stroke-width="6" />
+  `),
+  wolfMoon: makeArtwork(`
+    <circle cx="342" cy="142" r="52" stroke="${gold}" stroke-width="7" />
+    <path d="M168 340 C168 248 210 168 256 122 C302 168 344 248 344 340 C316 382 286 404 256 404 C226 404 196 382 168 340 Z" stroke="${ink}" stroke-width="10" />
+    <path d="M206 180 L174 112 L232 154" stroke="${ink}" stroke-width="8" />
+    <path d="M306 180 L338 112 L280 154" stroke="${ink}" stroke-width="8" />
+    <path d="M220 268 C232 248 244 240 256 240 C268 240 280 248 292 268" stroke="${softInk}" stroke-width="6" />
+    <circle cx="224" cy="238" r="8" fill="${ink}" />
+    <circle cx="288" cy="238" r="8" fill="${ink}" />
+    <path d="M238 300 L256 318 L274 300" stroke="${gold}" stroke-width="7" />
+    <path d="M214 344 C238 360 274 360 298 344" stroke="${ink}" stroke-width="7" />
+    <path d="M134 418 C192 390 284 390 368 418" stroke="${softInk}" stroke-width="6" />
+  `),
+  peonySleeve: makeArtwork(`
+    <path d="M160 220 C160 152 210 112 256 118 C308 124 348 166 342 224 C336 284 300 328 256 332 C212 328 166 286 160 220 Z" stroke="${ink}" stroke-width="10" />
+    <path d="M198 222 C220 168 250 156 256 214 C270 156 302 172 316 222 C286 206 270 228 256 276 C242 228 216 206 198 222 Z" stroke="${coral}" stroke-width="8" />
+    <path d="M184 284 C222 256 242 268 256 318 C270 268 296 256 330 284" stroke="${plum}" stroke-width="7" />
+    <path d="M132 382 C184 332 226 328 256 354 C286 328 328 332 380 382" stroke="${teal}" stroke-width="8" />
+    <path d="M150 398 C204 376 252 380 304 416" stroke="${softInk}" stroke-width="6" />
+    <path d="M326 132 C356 104 398 104 420 134 C386 158 356 160 326 132 Z" stroke="${teal}" stroke-width="6" />
+    <path d="M112 168 C136 132 174 124 202 150 C170 178 138 184 112 168 Z" stroke="${teal}" stroke-width="6" />
+  `),
+  lotusFineline: makeArtwork(`
+    <path d="M256 148 C278 202 276 250 256 296 C236 250 234 202 256 148 Z" stroke="${ink}" stroke-width="8" />
+    <path d="M218 186 C242 224 246 268 256 300 C218 284 190 248 178 204 C194 196 206 192 218 186 Z" stroke="${softInk}" stroke-width="7" />
+    <path d="M294 186 C270 224 266 268 256 300 C294 284 322 248 334 204 C318 196 306 192 294 186 Z" stroke="${softInk}" stroke-width="7" />
+    <path d="M164 252 C204 250 236 268 256 304 C210 316 172 294 142 260 C150 256 158 254 164 252 Z" stroke="${teal}" stroke-width="6" />
+    <path d="M348 252 C308 250 276 268 256 304 C302 316 340 294 370 260 C362 256 354 254 348 252 Z" stroke="${teal}" stroke-width="6" />
+    <path d="M126 356 C172 334 218 334 256 354 C294 334 340 334 386 356" stroke="${gold}" stroke-width="6" />
+    <path d="M150 388 C210 366 274 366 342 388" stroke="${softInk}" stroke-width="5" />
+  `),
+  sugarSkull: makeArtwork(`
+    <path d="M164 232 C164 154 214 108 256 108 C298 108 348 154 348 232 C348 302 310 358 284 382 H228 C202 358 164 302 164 232 Z" stroke="${ink}" stroke-width="10" />
+    <circle cx="222" cy="234" r="34" stroke="${plum}" stroke-width="8" />
+    <circle cx="290" cy="234" r="34" stroke="${teal}" stroke-width="8" />
+    <circle cx="222" cy="234" r="12" fill="${ink}" />
+    <circle cx="290" cy="234" r="12" fill="${ink}" />
+    <path d="M238 296 L256 274 L274 296 L256 306 Z" stroke="${gold}" stroke-width="6" />
+    <path d="M214 336 H298 M226 360 H286" stroke="${ink}" stroke-width="6" />
+    <path d="M154 126 C170 98 204 98 220 126 C198 150 176 150 154 126 Z" stroke="${coral}" stroke-width="6" />
+    <path d="M292 126 C308 98 342 98 358 126 C336 150 314 150 292 126 Z" stroke="${coral}" stroke-width="6" />
+    <path d="M184 190 C204 176 226 176 244 190 M268 190 C288 176 310 176 330 190" stroke="${gold}" stroke-width="5" />
+  `),
+  geometricSkull: makeArtwork(`
+    <path d="M168 212 L214 128 H302 L348 212 L320 344 L282 384 H230 L192 344 Z" stroke="${ink}" stroke-width="10" />
+    <path d="M214 128 L256 214 L302 128 M168 212 L256 214 L348 212 M192 344 L256 214 L320 344 M230 384 L256 326 L282 384" stroke="${softInk}" stroke-width="6" />
+    <path d="M208 236 L240 228 L232 264 L204 262 Z" stroke="${ink}" stroke-width="7" />
+    <path d="M304 236 L272 228 L280 264 L308 262 Z" stroke="${ink}" stroke-width="7" />
+    <path d="M238 306 H274 M246 334 H266" stroke="${gold}" stroke-width="6" />
+    <circle cx="256" cy="86" r="9" fill="${gold}" />
+    <circle cx="392" cy="256" r="9" fill="${gold}" />
+    <circle cx="256" cy="442" r="9" fill="${gold}" />
+    <circle cx="120" cy="256" r="9" fill="${gold}" />
+  `),
+  butterflyMonarch: makeArtwork(`
+    <path d="M256 154 V386" stroke="${ink}" stroke-width="10" />
+    <path d="M248 190 C194 118 112 132 98 222 C90 278 130 322 220 304 C232 258 242 220 248 190 Z" stroke="${ink}" stroke-width="10" />
+    <path d="M264 190 C318 118 400 132 414 222 C422 278 382 322 292 304 C280 258 270 220 264 190 Z" stroke="${ink}" stroke-width="10" />
+    <path d="M220 304 C178 334 150 372 154 414 C204 410 234 374 250 326" stroke="${ink}" stroke-width="8" />
+    <path d="M292 304 C334 334 362 372 358 414 C308 410 278 374 262 326" stroke="${ink}" stroke-width="8" />
+    <path d="M132 222 C164 202 196 202 230 224 M156 274 C184 256 208 256 226 270" stroke="${coral}" stroke-width="7" />
+    <path d="M380 222 C348 202 316 202 282 224 M356 274 C328 256 304 256 286 270" stroke="${coral}" stroke-width="7" />
+    <path d="M236 152 C230 118 210 104 188 100 M276 152 C282 118 302 104 324 100" stroke="${softInk}" stroke-width="5" />
+  `),
+  celticCross: makeArtwork(`
+    <path d="M230 88 H282 V210 H396 V262 H282 V424 H230 V262 H116 V210 H230 Z" stroke="${ink}" stroke-width="10" />
+    <circle cx="256" cy="236" r="92" stroke="${gold}" stroke-width="8" />
+    <path d="M206 138 C246 178 246 214 206 254 C246 294 246 330 206 374" stroke="${softInk}" stroke-width="6" />
+    <path d="M306 138 C266 178 266 214 306 254 C266 294 266 330 306 374" stroke="${softInk}" stroke-width="6" />
+    <path d="M146 236 C190 214 222 214 256 236 C290 258 322 258 366 236" stroke="${softInk}" stroke-width="6" />
+    <path d="M146 236 C190 258 222 258 256 236 C290 214 322 214 366 236" stroke="${softInk}" stroke-width="6" />
+  `),
+  compassRose: makeArtwork(`
+    <circle cx="256" cy="256" r="148" stroke="${ink}" stroke-width="9" />
+    <circle cx="256" cy="256" r="92" stroke="${gold}" stroke-width="6" stroke-dasharray="8 10" />
+    <path d="M256 82 L286 226 L430 256 L286 286 L256 430 L226 286 L82 256 L226 226 Z" stroke="${ink}" stroke-width="10" />
+    <path d="M256 136 L274 238 L376 256 L274 274 L256 376 L238 274 L136 256 L238 238 Z" stroke="${teal}" stroke-width="6" />
+    <path d="M164 164 L224 236 M348 164 L288 236 M348 348 L288 288 M164 348 L224 288" stroke="${softInk}" stroke-width="6" />
+    <circle cx="256" cy="256" r="18" fill="${gold}" />
+    <path d="M256 46 V70 M256 442 V466 M46 256 H70 M442 256 H466" stroke="${ink}" stroke-width="5" />
+  `),
+  smallDragon: makeArtwork(`
+    <path d="M144 304 C184 232 236 240 252 190 C266 148 314 128 360 162 C328 166 304 186 296 222 C282 284 224 300 196 364" stroke="${ink}" stroke-width="10" />
+    <path d="M164 312 C204 270 230 276 252 232 C270 196 306 174 338 174" stroke="${softInk}" stroke-width="5" />
+    <path d="M342 154 C360 126 394 132 408 160 C380 154 364 166 346 190" stroke="${ink}" stroke-width="7" />
+    <path d="M364 174 L410 196 M360 188 L402 228" stroke="${gold}" stroke-width="5" />
+    <path d="M150 372 C124 388 100 386 82 370 C112 370 134 350 146 318" stroke="${teal}" stroke-width="6" />
+    <circle cx="366" cy="170" r="6" fill="${ink}" />
+  `),
   constellationMap: makeArtwork(`
     <circle cx="124" cy="184" r="12" fill="${ink}" />
     <circle cx="202" cy="144" r="10" fill="${ink}" />
@@ -176,6 +306,8 @@ const artworks = {
     <circle cx="256" cy="256" r="162" stroke="${gold}" stroke-width="6" stroke-dasharray="6 14" opacity="0.75" />
   `),
 } as const;
+
+export const communityGalleryArtworks = artworks;
 
 export const communityGalleryItems: CommunityGalleryItem[] = [
   {
@@ -382,6 +514,312 @@ export const communityGalleryItems: CommunityGalleryItem[] = [
     isNew: true,
     createdAt: "2025-01-30",
   },
+  {
+    id: 13,
+    style: "Traditional",
+    prompt: "Old school eagle with banner lines and rose-red flash accents",
+    image: artworks.oldSchoolEagle,
+    artist: "Derek Stone",
+    avatar: "DS",
+    likes: 276,
+    views: 3340,
+    placement: "Upper Arm",
+    colorMode: "Full Color",
+    resolution: "2048x2048",
+    generationTime: "17s",
+    isHot: true,
+    isNew: false,
+    createdAt: "2025-02-01",
+  },
+  {
+    id: 14,
+    style: "Japanese",
+    prompt: "Japanese dragon sleeve draft with clouds and red scale accents",
+    image: artworks.japaneseDragon,
+    artist: "Kenji Sato",
+    avatar: "KS",
+    likes: 634,
+    views: 7890,
+    placement: "Full Sleeve",
+    colorMode: "Full Color",
+    resolution: "2048x2048",
+    generationTime: "26s",
+    isHot: true,
+    isNew: true,
+    createdAt: "2025-02-03",
+  },
+  {
+    id: 15,
+    style: "Japanese",
+    prompt: "Cherry blossom branch with soft petals for shoulder placement",
+    image: artworks.cherryBlossomBranch,
+    artist: "Yuki Tanaka",
+    avatar: "YT",
+    likes: 498,
+    views: 5670,
+    placement: "Shoulder",
+    colorMode: "Full Color",
+    resolution: "2048x2048",
+    generationTime: "15s",
+    isHot: false,
+    isNew: true,
+    createdAt: "2025-02-04",
+  },
+  {
+    id: 16,
+    style: "Neo-Traditional",
+    prompt: "Vibrant neo-traditional rose with jewel tone leaves",
+    image: artworks.neoRose,
+    artist: "Mia Torres",
+    avatar: "MT",
+    likes: 334,
+    views: 3890,
+    placement: "Forearm",
+    colorMode: "Full Color",
+    resolution: "2048x2048",
+    generationTime: "18s",
+    isHot: false,
+    isNew: false,
+    createdAt: "2025-02-05",
+  },
+  {
+    id: 17,
+    style: "Realism",
+    prompt: "Realistic wolf head with moon halo and clean black shading",
+    image: artworks.wolfMoon,
+    artist: "Marcus Reed",
+    avatar: "MR",
+    likes: 523,
+    views: 6340,
+    placement: "Shoulder",
+    colorMode: "Black & Grey",
+    resolution: "2048x2048",
+    generationTime: "24s",
+    isHot: true,
+    isNew: false,
+    createdAt: "2025-02-06",
+  },
+  {
+    id: 18,
+    style: "Watercolor",
+    prompt: "Peony flower sleeve concept with soft botanical flow",
+    image: artworks.peonySleeve,
+    artist: "Yuki Tanaka",
+    avatar: "YT",
+    likes: 601,
+    views: 7120,
+    placement: "Full Sleeve",
+    colorMode: "Full Color",
+    resolution: "2048x2048",
+    generationTime: "21s",
+    isHot: true,
+    isNew: true,
+    createdAt: "2025-02-07",
+  },
+  {
+    id: 19,
+    style: "Fineline",
+    prompt: "Delicate lotus fineline tattoo emerging from water ripples",
+    image: artworks.lotusFineline,
+    artist: "Emma Blake",
+    avatar: "EB",
+    likes: 398,
+    views: 4560,
+    placement: "Ankle",
+    colorMode: "Black & Grey",
+    resolution: "1024x1024",
+    generationTime: "9s",
+    isHot: false,
+    isNew: true,
+    createdAt: "2025-02-08",
+  },
+  {
+    id: 20,
+    style: "Illustrative",
+    prompt: "Sugar skull with floral eyes and Day of the Dead color accents",
+    image: artworks.sugarSkull,
+    artist: "Luna Reyes",
+    avatar: "LR",
+    likes: 445,
+    views: 5340,
+    placement: "Thigh",
+    colorMode: "Full Color",
+    resolution: "2048x2048",
+    generationTime: "23s",
+    isHot: true,
+    isNew: false,
+    createdAt: "2025-02-09",
+  },
+  {
+    id: 21,
+    style: "Geometric",
+    prompt: "Low-poly geometric skull with gold compass points",
+    image: artworks.geometricSkull,
+    artist: "Ryan Park",
+    avatar: "RP",
+    likes: 312,
+    views: 3780,
+    placement: "Forearm",
+    colorMode: "Black & Grey",
+    resolution: "2048x2048",
+    generationTime: "16s",
+    isHot: false,
+    isNew: false,
+    createdAt: "2025-02-10",
+  },
+  {
+    id: 22,
+    style: "Watercolor",
+    prompt: "Monarch butterfly tattoo with warm watercolor wing panels",
+    image: artworks.butterflyMonarch,
+    artist: "Mia Torres",
+    avatar: "MT",
+    likes: 678,
+    views: 8230,
+    placement: "Shoulder",
+    colorMode: "Full Color",
+    resolution: "2048x2048",
+    generationTime: "19s",
+    isHot: true,
+    isNew: true,
+    createdAt: "2025-02-11",
+  },
+  {
+    id: 23,
+    style: "Minimalist",
+    prompt: "Minimal butterfly silhouette for tiny wrist placement",
+    image: artworks.butterflyMonarch,
+    artist: "Nina Patel",
+    avatar: "NP",
+    likes: 489,
+    views: 5670,
+    placement: "Wrist",
+    colorMode: "Black & Grey",
+    resolution: "1024x1024",
+    generationTime: "8s",
+    isHot: false,
+    isNew: true,
+    createdAt: "2025-02-12",
+  },
+  {
+    id: 24,
+    style: "Blackwork",
+    prompt: "Celtic cross with knotwork loop and heavy black structure",
+    image: artworks.celticCross,
+    artist: "Jonas Weber",
+    avatar: "JW",
+    likes: 334,
+    views: 4120,
+    placement: "Upper Arm",
+    colorMode: "Black & Grey",
+    resolution: "2048x2048",
+    generationTime: "18s",
+    isHot: false,
+    isNew: false,
+    createdAt: "2025-02-13",
+  },
+  {
+    id: 25,
+    style: "Neo-Traditional",
+    prompt: "Rose cross with bold outline and devotional flash symmetry",
+    image: artworks.celticCross,
+    artist: "Sarah Kim",
+    avatar: "SK",
+    likes: 278,
+    views: 3450,
+    placement: "Chest",
+    colorMode: "Full Color",
+    resolution: "2048x2048",
+    generationTime: "18s",
+    isHot: false,
+    isNew: false,
+    createdAt: "2025-02-14",
+  },
+  {
+    id: 26,
+    style: "Traditional",
+    prompt: "Vintage compass rose with antique map linework",
+    image: artworks.compassRose,
+    artist: "Derek Stone",
+    avatar: "DS",
+    likes: 401,
+    views: 4890,
+    placement: "Forearm",
+    colorMode: "Black & Grey",
+    resolution: "2048x2048",
+    generationTime: "20s",
+    isHot: true,
+    isNew: false,
+    createdAt: "2025-02-15",
+  },
+  {
+    id: 27,
+    style: "Geometric",
+    prompt: "Modern geometric compass with clean direction marks",
+    image: artworks.compassRose,
+    artist: "Ryan Park",
+    avatar: "RP",
+    likes: 267,
+    views: 3120,
+    placement: "Wrist",
+    colorMode: "Black & Grey",
+    resolution: "1024x1024",
+    generationTime: "13s",
+    isHot: false,
+    isNew: false,
+    createdAt: "2025-02-16",
+  },
+  {
+    id: 28,
+    style: "Tribal",
+    prompt: "Tribal wolf tattoo with bold shoulder-ready black shapes",
+    image: artworks.wolfMoon,
+    artist: "Kai Mahalo",
+    avatar: "KM",
+    likes: 456,
+    views: 5670,
+    placement: "Shoulder",
+    colorMode: "Black & Grey",
+    resolution: "2048x2048",
+    generationTime: "19s",
+    isHot: true,
+    isNew: false,
+    createdAt: "2025-02-17",
+  },
+  {
+    id: 29,
+    style: "Watercolor",
+    prompt: "Watercolor wolf portrait with moon and soft splash accents",
+    image: artworks.wolfMoon,
+    artist: "Mia Torres",
+    avatar: "MT",
+    likes: 534,
+    views: 6450,
+    placement: "Thigh",
+    colorMode: "Full Color",
+    resolution: "2048x2048",
+    generationTime: "22s",
+    isHot: true,
+    isNew: true,
+    createdAt: "2025-02-18",
+  },
+  {
+    id: 30,
+    style: "Minimalist",
+    prompt: "Small dragon wrist tattoo with compact protective curves",
+    image: artworks.smallDragon,
+    artist: "Nina Patel",
+    avatar: "NP",
+    likes: 356,
+    views: 4120,
+    placement: "Wrist",
+    colorMode: "Black & Grey",
+    resolution: "1024x1024",
+    generationTime: "10s",
+    isHot: false,
+    isNew: true,
+    createdAt: "2025-02-19",
+  },
 ];
 
 export const communityGalleryCategories = [
@@ -396,5 +834,6 @@ export const communityGalleryCategories = [
   "Dotwork",
   "Tribal",
   "Realism",
+  "Fineline",
+  "Illustrative",
 ] as const;
-

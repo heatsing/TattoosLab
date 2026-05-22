@@ -21,7 +21,7 @@ import { cn } from "@/utils/cn";
 import {
   communityGalleryCategories,
   communityGalleryItems,
-} from "@/lib/gallery/community-gallery";
+} from "@/lib/gallery/community-items";
 
 const stats = [
   { label: "Total Designs", value: "12,847", icon: Sparkles },

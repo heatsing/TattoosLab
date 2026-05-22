@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { Tattoo } from "@/lib/gallery/types";
 import { Heart, Eye, Wand2 } from "lucide-react";
@@ -45,15 +44,17 @@ function TattooCard({ tattoo }: { tattoo: Tattoo }) {
     <div className="group relative rounded-xl overflow-hidden border border-white/10 bg-white/5 hover:border-brand-500/30 transition-all">
       {/* Image */}
       <div className="relative aspect-[3/4] overflow-hidden">
-        <Image
-          src={tattoo.imageUrl}
-          alt={tattoo.title}
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-        />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#42362c,transparent_56%),linear-gradient(160deg,#f6efdf_0%,#eadcc3_52%,#f8f3e8_100%)] opacity-95 transition-transform duration-500 group-hover:scale-[1.02]" />
+        <div className="absolute inset-3 rounded-[24px] border border-black/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.72),rgba(255,255,255,0.14))] shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_18px_30px_rgba(0,0,0,0.12)]" />
+        <div className="absolute inset-0 flex items-center justify-center p-8">
+          <img
+            src={tattoo.imageUrl}
+            alt={tattoo.title}
+            className="h-full w-full object-contain drop-shadow-[0_16px_26px_rgba(0,0,0,0.18)] transition-transform duration-500 group-hover:scale-105"
+          />
+        </div>
         {/* Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-55 transition-opacity group-hover:opacity-70" />
         
         {/* Top Badges */}
         <div className="absolute top-3 left-3 flex gap-2">
